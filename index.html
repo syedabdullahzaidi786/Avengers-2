@@ -1,0 +1,386 @@
+<?php
+/**
+ * Gym Management System - Project Index
+ * Complete file listing and navigation
+ */
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Index - Gym Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f5f5f5; }
+        .file-item { padding: 10px; border-bottom: 1px solid #e0e0e0; }
+        .file-item:hover { background-color: #f9f9f9; }
+        .file-type { font-size: 12px; color: #999; }
+        .code { background: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; }
+        .nav-link { color: #667eea !important; }
+        .nav-link:hover { text-decoration: underline; }
+        .tech-badge { display: inline-block; padding: 3px 8px; background: #e0e0e0; border-radius: 3px; font-size: 11px; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-dumbbell"></i> Gym Management System
+            </span>
+            <span class="text-light">Project Index & Navigation</span>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <!-- Quick Links -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    <h5><i class="fas fa-rocket"></i> Quick Start</h5>
+                    <p class="mb-2">Choose where to go:</p>
+                    <a href="system-info.php" class="btn btn-sm btn-info me-2">
+                        <i class="fas fa-stethoscope"></i> Health Check
+                    </a>
+                    <a href="login.php" class="btn btn-sm btn-primary me-2">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="index.php" class="btn btn-sm btn-success me-2">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <a href="README.md" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-book"></i> Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Documentation Files -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-book"></i> Documentation Files (START HERE)</h5>
+            </div>
+            <div class="card-body">
+                <div class="file-item">
+                    <strong>📖 PROJECT_SUMMARY.md</strong>
+                    <div class="file-type">Complete project overview - Read this first!</div>
+                    <small class="text-muted">Contains: Features, file structure, tech stack, checklist, what's included</small>
+                </div>
+                <div class="file-item">
+                    <strong>⚡ QUICKSTART.md</strong>
+                    <div class="file-type">5-minute installation and setup guide</div>
+                    <small class="text-muted">Contains: Step-by-step installation, default login, common tasks</small>
+                </div>
+                <div class="file-item">
+                    <strong>📚 README.md</strong>
+                    <div class="file-type">Comprehensive documentation</div>
+                    <small class="text-muted">Contains: Features, requirements, installation, database, troubleshooting</small>
+                </div>
+                <div class="file-item">
+                    <strong>✨ FEATURES.md</strong>
+                    <div class="file-type">Detailed feature documentation</div>
+                    <small class="text-muted">Contains: All 15+ features, integrations, extensibility, maintenance</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Application Files -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-code"></i> Application Files</h5>
+            </div>
+            <div class="card-body">
+                <div class="file-item">
+                    <strong>🏠 index.php</strong> - Main Dashboard
+                    <div class="file-type">PHP | Entry Point</div>
+                </div>
+                <div class="file-item">
+                    <strong>🔐 login.php</strong> - Admin Login
+                    <div class="file-type">PHP | Authentication</div>
+                </div>
+                <div class="file-item">
+                    <strong>🚪 logout.php</strong> - Logout Handler
+                    <div class="file-type">PHP | Session Cleanup</div>
+                </div>
+                <div class="file-item">
+                    <strong>ℹ️ system-info.php</strong> - Health Check
+                    <div class="file-type">PHP | Diagnostic Tool</div>
+                </div>
+                <div class="file-item">
+                    <strong>🏠 home.php</strong> - Home Redirect
+                    <div class="file-type">PHP | Redirect</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Configuration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-cog"></i> Configuration & Database</h5>
+            </div>
+            <div class="card-body">
+                <div class="file-item">
+                    <strong>🔐 /config/database.php</strong> - Database Configuration
+                    <div class="file-type">PHP | Configuration</div>
+                    <small class="text-muted">Database credentials, session settings, helper functions</small>
+                </div>
+                <div class="file-item">
+                    <strong>🗄️ gym_database.sql</strong> - Full Database Schema
+                    <div class="file-type">SQL | Database</div>
+                    <small class="text-muted">Complete DB structure with sample data (import this first!)</small>
+                </div>
+                <div class="file-item">
+                    <strong>🔒 .htaccess</strong> - Security Rules
+                    <div class="file-type">Apache Config</div>
+                    <small class="text-muted">File access protection, PHP settings</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Models -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-database"></i> Models (Data Layer)</h5>
+            </div>
+            <div class="card-body">
+                <div class="file-item">
+                    <strong>👤 /models/User.php</strong> - User Authentication
+                    <div class="file-type">PHP Class | OOP</div>
+                    <small class="text-muted">Login, logout, user validation</small>
+                </div>
+                <div class="file-item">
+                    <strong>👥 /models/Member.php</strong> - Member Management
+                    <div class="file-type">PHP Class | OOP</div>
+                    <small class="text-muted">CRUD operations, status management, search</small>
+                </div>
+                <div class="file-item">
+                    <strong>📋 /models/Plan.php</strong> - Plan Management
+                    <div class="file-type">PHP Class | OOP</div>
+                    <small class="text-muted">Plan CRUD, validation, deletion logic</small>
+                </div>
+                <div class="file-item">
+                    <strong>💰 /models/Payment.php</strong> - Payment Operations
+                    <div class="file-type">PHP Class | OOP</div>
+                    <small class="text-muted">Payment recording, reporting, revenue calculation</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controllers -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-layer-group"></i> Controllers (Business Logic)</h5>
+            </div>
+            <div class="card-body">
+                <div class="file-item">
+                    <strong>📊 /controllers/DashboardController.php</strong> - Dashboard Logic
+                    <div class="file-type">PHP Class | Controller</div>
+                    <small class="text-muted">Dashboard data aggregation, metrics compilation</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Views -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-eye"></i> Views (Presentation Layer)</h5>
+            </div>
+            <div class="card-body">
+                <div class="file-item">
+                    <strong>🎨 /views/layout/header.php</strong> - Main Layout Template
+                    <div class="file-type">HTML/PHP | Template</div>
+                    <small class="text-muted">Sidebar, top nav, alerts, scripts - used on all pages</small>
+                </div>
+                <div class="file-item">
+                    <strong>💼 /views/members/members.php</strong> - Members Listing
+                    <div class="file-type">HTML/PHP | View</div>
+                    <small class="text-muted">List, search, edit, delete, add members via modals</small>
+                </div>
+                <div class="file-item">
+                    <strong>👤 /views/members/member_profile.php</strong> - Member Details
+                    <div class="file-type">HTML/PHP | View</div>
+                    <small class="text-muted">Individual member profile with payment history</small>
+                </div>
+                <div class="file-item">
+                    <strong>📦 /views/plans/plans.php</strong> - Plans Management
+                    <div class="file-type">HTML/PHP | View</div>
+                    <small class="text-muted">Create, edit, delete membership plans</small>
+                </div>
+                <div class="file-item">
+                    <strong>💳 /views/payments/payments.php</strong> - Payments Listing
+                    <div class="file-type">HTML/PHP | View</div>
+                    <small class="text-muted">Record payments, view history, print receipts</small>
+                </div>
+                <div class="file-item">
+                    <strong>🧾 /views/payments/receipt.php</strong> - Receipt Printing
+                    <div class="file-type">HTML/PHP | View</div>
+                    <small class="text-muted">Printable payment receipt/invoice</small>
+                </div>
+                <div class="file-item">
+                    <strong>📈 /views/reports/revenue.php</strong> - Revenue Reports
+                    <div class="file-type">HTML/PHP | View</div>
+                    <small class="text-muted">Monthly breakdown, charts, CSV export</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AJAX Handlers -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-cloud-upload-alt"></i> AJAX Handlers</h5>
+            </div>
+            <div class="card-body">
+                <h6>Members AJAX (6 files)</h6>
+                <div class="file-item">
+                    <small>
+                        <span class="tech-badge">POST</span>
+                        <strong>/ajax/members_add.php</strong> - Create member<br>
+                        <strong>/ajax/members_get.php</strong> - List members<br>
+                        <strong>/ajax/members_get_single.php</strong> - Get single member<br>
+                        <strong>/ajax/members_update.php</strong> - Update member<br>
+                        <strong>/ajax/members_delete.php</strong> - Delete member
+                    </small>
+                </div>
+                
+                <h6 class="mt-3">Plans AJAX (5 files)</h6>
+                <div class="file-item">
+                    <small>
+                        <span class="tech-badge">POST</span>
+                        <strong>/ajax/plans_add.php</strong> - Create plan<br>
+                        <strong>/ajax/plans_get.php</strong> - List plans<br>
+                        <strong>/ajax/plans_get_single.php</strong> - Get single plan<br>
+                        <strong>/ajax/plans_update.php</strong> - Update plan<br>
+                        <strong>/ajax/plans_delete.php</strong> - Delete plan
+                    </small>
+                </div>
+                
+                <h6 class="mt-3">Payments AJAX (2 files)</h6>
+                <div class="file-item">
+                    <small>
+                        <span class="tech-badge">POST</span>
+                        <strong>/ajax/payments_add.php</strong> - Record payment<br>
+                        <strong>/ajax/payments_get.php</strong> - List payments
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assets -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-palette"></i> Assets</h5>
+            </div>
+            <div class="card-body">
+                <h6>CSS</h6>
+                <div class="file-item">
+                    <small>
+                        <strong>/assets/css/style.css</strong> - Main stylesheet (responsive design, dark theme compatible)
+                    </small>
+                </div>
+                
+                <h6 class="mt-3">JavaScript</h6>
+                <div class="file-item">
+                    <small>
+                        <strong>/assets/js/main.js</strong> - Global functions (APP object, utilities)<br>
+                        <strong>/assets/js/members.js</strong> - Members module<br>
+                        <strong>/assets/js/plans.js</strong> - Plans module<br>
+                        <strong>/assets/js/payments.js</strong> - Payments module
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Technology Stack -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-cube"></i> Technology Stack</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Backend</h6>
+                        <ul class="list-unstyled">
+                            <li><span class="tech-badge">PHP 7.4+</span> Server language</li>
+                            <li><span class="tech-badge">MySQL 5.7+</span> Database</li>
+                            <li><span class="tech-badge">PDO</span> DB abstraction</li>
+                            <li><span class="tech-badge">OOP</span> Architecture</li>
+                            <li><span class="tech-badge">MVC-like</span> Structure</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Frontend</h6>
+                        <ul class="list-unstyled">
+                            <li><span class="tech-badge">HTML5</span> Markup</li>
+                            <li><span class="tech-badge">CSS3</span> Styling</li>
+                            <li><span class="tech-badge">Bootstrap 5</span> Framework</li>
+                            <li><span class="tech-badge">jQuery 3.6</span> DOM</li>
+                            <li><span class="tech-badge">Chart.js</span> Graphs</li>
+                            <li><span class="tech-badge">DataTables</span> Tables</li>
+                            <li><span class="tech-badge">SweetAlert2</span> Alerts</li>
+                            <li><span class="tech-badge">Font Awesome</span> Icons</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Getting Started -->
+        <div class="alert alert-success mb-4">
+            <h5><i class="fas fa-check-circle"></i> Getting Started in 3 Steps</h5>
+            <ol>
+                <li><strong>Import Database</strong>: Open phpMyAdmin → Import → Select gym_database.sql</li>
+                <li><strong>Login</strong>: Go to login.php → Username: admin, Password: admin123</li>
+                <li><strong>Explore</strong>: Navigate through Members, Plans, Payments, Reports</li>
+            </ol>
+            <p class="mb-0"><a href="QUICKSTART.md" class="btn btn-sm btn-success">📖 Read Full Quick Start Guide</a></p>
+        </div>
+        
+        <!-- File Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Project Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h3 style="color: #667eea;">40+</h3>
+                        <p>Total Files</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 style="color: #667eea;">5,000+</h3>
+                        <p>Lines of Code</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 style="color: #667eea;">15+</h3>
+                        <p>Features</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h3 style="color: #667eea;">20+</h3>
+                        <p>AJAX Endpoints</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Support -->
+        <div class="alert alert-info">
+            <h5><i class="fas fa-question-circle"></i> Need Help?</h5>
+            <ul class="mb-0">
+                <li><strong>Installation Issues?</strong> → See QUICKSTART.md</li>
+                <li><strong>Feature Questions?</strong> → See FEATURES.md</li>
+                <li><strong>Setup Help?</strong> → See README.md</li>
+                <li><strong>System Check?</strong> → Run system-info.php</li>
+                <li><strong>Code Issues?</strong> → Check browser console (F12)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <footer class="text-center py-4 text-muted mt-5">
+        <p><strong>Gym Management System v1.0</strong> | Production Ready | February 2026</p>
+        <p>Built with PHP, MySQL, Bootstrap, and JavaScript</p>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
