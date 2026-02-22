@@ -15,8 +15,9 @@ $feeTypesJson = json_encode($feeTypes);
 // Set page title
 $pageTitle = 'Renew Membership';
 
-// Start building page content
-$pageContent = '
+// Render page content using output buffering to avoid quoting issues
+ob_start();
+?>
 <div class="page-header">
     <h1><i class="fas fa-sync-alt"></i> Renew Membership</h1>
     <p>Search member by ID to process renewal and payment</p>
@@ -104,8 +105,11 @@ $pageContent = '
                                     <th style="width: 10%;"></th>
                                 </tr>
                             </thead>
-                            <tbody id="feeItemsBody">
-                                <!-- Dynamic Rows -->
+                            <tbody id="defaultFeesBody">
+                                <!-- Default (read-only) Fees -->
+                            </tbody>
+                            <tbody id="customFeesBody">
+                                <!-- Custom (editable) Fees -->
                             </tbody>
                             <tfoot class="bg-light">
                                 <tr>
@@ -130,7 +134,7 @@ $pageContent = '
                                 </tr>
                             </tfoot>
                         </table>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFeeRow()">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomFeeRow()">
                             <i class="fas fa-plus"></i> Add Extra Fee
                         </button>
                     </div>
@@ -149,7 +153,7 @@ $pageContent = '
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small">Payment Date</label>
-                            <input type="date" id="paymentDate" class="form-control" value="' . date('Y-m-d') . '">
+                            <input type="date" id="paymentDate" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                         </div>
                     </div>
 
@@ -173,7 +177,7 @@ $pageContent = '
 </div>
 
 <script>
-const feeTypes = ' . $feeTypesJson . ';
+const feeTypes = <?php echo $feeTypesJson; ?>;
 let currentMember = null;
 
 function searchMember(e) {
@@ -182,7 +186,7 @@ function searchMember(e) {
     if (!id) return;
 
     $.ajax({
-        url: "' . APP_URL . '/ajax/member_get_by_id.php",
+        url: "<?php echo APP_URL; ?>/ajax/member_get_by_id.php",
         type: "POST",
         data: { id: id },
         dataType: "json",
@@ -202,22 +206,41 @@ function searchMember(e) {
     });
 }
 
-function addFeeRow(defaultId = null, defaultAmount = null) {
-    const tbody = document.getElementById("feeItemsBody");
+function addDefaultFeeRow(feeTypeId = null, feeName = "", amount = 0) {
+    const tbody = document.getElementById("defaultFeesBody");
     const tr = document.createElement("tr");
-    
-    let options = "<option value=\"\">Select Fee Type</option>";
+
+    // Disabled select showing the fee type name
+    let selectHtml = "<select class='form-select form-select-sm' disabled>";
+    if (feeTypeId) {
+        selectHtml += "<option value='" + feeTypeId + "' selected>" + escapeHtml(feeName) + "</option>";
+    } else {
+        selectHtml += "<option value=''>" + "Default" + "</option>";
+    }
+    selectHtml += "</select>";
+
+    tr.innerHTML = "<td>" + selectHtml + "</td>" +
+        "<td><input type='number' class='form-control form-control-sm fee-amount-input' value='" + parseFloat(amount || 0).toFixed(2) + "' step='0.01' min='0' readonly></td>" +
+        "<td></td>";
+
+    tbody.appendChild(tr);
+    calculateTotal();
+}
+
+function addCustomFeeRow(defaultId = null, defaultAmount = null) {
+    const tbody = document.getElementById("customFeesBody");
+    const tr = document.createElement("tr");
+
+    let options = "<option value=''>Select Fee Type</option>";
     feeTypes.forEach(ft => {
         const selected = (defaultId != null && String(ft.id) === String(defaultId)) ? "selected" : "";
-        options += `<option value="${ft.id}" data-amount="${ft.default_amount}" ${selected}>${ft.name}</option>`;
+        options += "<option value='" + ft.id + "' data-amount='" + (ft.default_amount || '') + "' " + selected + ">" + escapeHtml(ft.name) + "</option>";
     });
-    
-    tr.innerHTML = `
-        <td><select class="form-select form-select-sm fee-type-select" onchange="updateRowAmount(this)" required>${options}</select></td>
-        <td><input type="number" class="form-control form-control-sm fee-amount-input" value="${defaultAmount !== null ? defaultAmount : ""}" step="0.01" min="0" oninput="calculateTotal()" required></td>
-        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFeeRow(this)"><i class="fas fa-times"></i></button></td>
-    `;
-    
+
+    tr.innerHTML = "<td><select class='form-select form-select-sm fee-type-select' onchange='updateRowAmount(this)' required>" + options + "</select></td>" +
+        "<td><input type='number' class='form-control form-control-sm fee-amount-input' value='" + (defaultAmount !== null ? defaultAmount : '') + "' step='0.01' min='0' oninput='calculateTotal()' required></td>" +
+        "<td class='text-center'><button type='button' class='btn btn-sm btn-outline-danger' onclick='removeFeeRow(this)'><i class='fas fa-times'></i></button></td>";
+
     tbody.appendChild(tr);
     if (defaultId && defaultAmount === null) {
         const select = tr.querySelector(".fee-type-select");
@@ -248,11 +271,11 @@ function calculateTotal() {
         const val = parseFloat(input.value);
         if (!isNaN(val)) subtotal += val;
     });
-    
+
     const discountPercent = parseFloat(document.getElementById("renewalDiscountPercent").value) || 0;
     const discountAmount = subtotal * (discountPercent / 100);
     const total = subtotal - discountAmount;
-    
+
     document.getElementById("renewalSubtotal").value = subtotal.toFixed(2);
     document.getElementById("renewalDiscountAmount").value = discountAmount.toFixed(2);
     document.getElementById("renewalTotal").value = total.toFixed(2);
@@ -268,17 +291,18 @@ function showMemberDetails(member) {
     document.getElementById("displayMemberExpiry").textContent = formatDate(member.end_date);
     
     // Clear and build fee table
-    document.getElementById("feeItemsBody").innerHTML = "";
-    
-    // 1. Add Membership Fee (Fee Type 1)
+    document.getElementById("defaultFeesBody").innerHTML = "";
+    document.getElementById("customFeesBody").innerHTML = "";
+
+    // 1. Add Membership Fee (read-only default)
     const planPrice = parseFloat(member.price) || 0;
-    addFeeRow(1, planPrice);
-    
-    // 2. Add Trainer Fee if applicable
+    addDefaultFeeRow(1, member.plan_name || "Membership Fee", planPrice);
+
+    // 2. Add Trainer Fee if applicable (read-only default)
     const trainerFee = parseFloat(member.trainer_fee) || 0;
     if (trainerFee > 0) {
         const ft = findTrainerFeeType(member.trainer_name);
-        addFeeRow(ft ? ft.id : 4, trainerFee); // Default to 4 if not matched
+        addDefaultFeeRow(ft ? ft.id : null, ft ? ft.name : "Trainer Fee", trainerFee);
     }
     
     document.getElementById("renewalDiscountPercent").value = 0;
@@ -313,9 +337,11 @@ function processRenewal() {
     if (!currentMember) return;
 
     const items = [];
-    document.querySelectorAll("#feeItemsBody tr").forEach(row => {
-        const feeTypeId = row.querySelector(".fee-type-select").value;
-        const amount = row.querySelector(".fee-amount-input").value;
+    document.querySelectorAll("#defaultFeesBody tr, #customFeesBody tr").forEach(row => {
+        const feeTypeSelect = row.querySelector(".fee-type-select");
+        const feeTypeId = feeTypeSelect ? feeTypeSelect.value : (row.querySelector('select') ? row.querySelector('select').value : null);
+        const amountInput = row.querySelector(".fee-amount-input");
+        const amount = amountInput ? amountInput.value : 0;
         if (feeTypeId && amount > 0) {
             items.push({ fee_type_id: feeTypeId, amount: amount });
         }
@@ -343,7 +369,7 @@ function processRenewal() {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: "' . APP_URL . '/ajax/membership_renew.php",
+                url: "<?php echo APP_URL; ?>/ajax/membership_renew.php",
                 type: "POST",
                 data: {
                     member_id: currentMember.id,
@@ -363,9 +389,9 @@ function processRenewal() {
                             showCancelButton: true,
                             confirmButtonText: "Print Receipt",
                             cancelButtonText: "Close"
-                        }).then((printResult) => {
+                            }).then((printResult) => {
                             if (printResult.isConfirmed) {
-                                printReceipt(response.receipt);
+                                printRenewalReceipt(response.receipt);
                             }
                             searchMember(); 
                         });
@@ -378,14 +404,11 @@ function processRenewal() {
     });
 }
 
-function printReceipt(receipt) {
+function printRenewalReceipt(receipt) {
     if (!receipt || !receipt.receipt_number) return;
-    
+
     // Use direct thermal printer script with a custom title for renewal
-    const printUrl = `' . APP_URL . '/views/payments/print_receipt.php?id=${receipt.id || ""}&receipt_no=${receipt.receipt_number}&title=RENEWAL RECEIPT`;
-    
-    // We can also fall back to the browseable receipt if needed, 
-    // but the user requested direct thermal printer work same as payments.
+    const printUrl = "<?php echo APP_URL; ?>/views/payments/print_receipt.php?id=" + (receipt.id || "") + "&receipt_no=" + encodeURIComponent(receipt.receipt_number) + "&title=RENEWAL%20RECEIPT";
     window.open(printUrl, "_blank");
 }
 
@@ -401,7 +424,8 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 </script>
-';
+<?php
+$pageContent = ob_get_clean();
 
 // Output page with layout
 include __DIR__ . '/../../views/layout/header.php';
