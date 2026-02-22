@@ -16,9 +16,15 @@ $pageTitle = 'Dashboard';
 
 // Start building page content
 $pageContent = '
-<div class="page-header">
-    <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
-    <p>Welcome back! Here\'s your gym management summary.</p>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
+        <p class="mb-0">Welcome back! Here\'s your gym management summary.</p>
+    </div>
+    <div class="text-end">
+        <div id="dashboard-clock" class="h2 fw-bold mb-0" style="color: #667eea; letter-spacing: 2px;">00:00:00</div>
+        <div id="dashboard-date" class="text-muted small">Loading date...</div>
+    </div>
 </div>
 
 <!-- Stats Row -->
@@ -72,22 +78,33 @@ $pageContent = '
     </div>
 </div>
 
-<!-- Charts and Recent Activity -->
+<!-- Actions and Expiring Section -->
 <div class="row">
-    <!-- Revenue Chart -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
+    <!-- Quick Actions -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
             <div class="card-header">
-                <h5 class="card-title mb-0">Revenue Breakdown (2026)</h5>
+                <h5 class="card-title mb-0">Quick Actions</h5>
             </div>
-            <div class="card-body">
-                <canvas id="revenueChart"></canvas>
+            <div class="card-body d-flex flex-column justify-content-center align-items-center gap-3 py-4">
+                <button class="btn btn-lg shadow-sm fw-bold px-4 py-3 w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; transition: all 0.3s ease; font-size: 1.1rem;" onclick="syncMembershipStatus()">
+                    <i class="fas fa-sync-alt me-2 fa-lg"></i> SYNC MEMBERSHIP STATUS
+                </button>
+                <a href="' . APP_URL . '/views/attendance/index.php" class="btn btn-lg shadow-sm fw-bold px-4 py-3 w-100" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border: none; border-radius: 12px; transition: all 0.3s ease; font-size: 1.1rem;">
+                    <i class="fas fa-calendar-check me-2 fa-lg"></i> MARK ATTENDANCE
+                </a>
+                <a href="' . APP_URL . '/views/members/renew.php" class="btn btn-lg shadow-sm fw-bold px-4 py-3 w-100" style="background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); color: white; border: none; border-radius: 12px; transition: all 0.3s ease; font-size: 1.1rem;">
+                    <i class="fas fa-sync-alt me-2 fa-lg"></i> RENEW MEMBERSHIP
+                </a>
+                <a href="' . APP_URL . '/views/members/generate_id.php" class="btn btn-lg shadow-sm fw-bold px-4 py-3 w-100" style="background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%); color: white; border: none; border-radius: 12px; transition: all 0.3s ease; font-size: 1.1rem;">
+                    <i class="fas fa-id-card me-2 fa-lg"></i> GENERATE ID CARDS
+                </a>
             </div>
         </div>
     </div>
     
     <!-- Expiring Soon -->
-    <div class="col-lg-4 mb-4">
+    <div class="col-lg-6 mb-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Expiring Soon (7 days)</h5>
@@ -120,6 +137,7 @@ $pageContent .= '
         </div>
     </div>
 </div>
+
 
 <!-- Recent Payments -->
 <div class="row">
@@ -171,59 +189,70 @@ $pageContent .= '
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Revenue Chart
-    const ctx = document.getElementById("revenueChart");
-    if (ctx) {
-        const chartData = ' . json_encode($data['monthlyBreakdown']) . ';
-        const labels = [
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        ];
-        const data = new Array(12).fill(0);
-        
-        chartData.forEach(item => {
-            data[item.month - 1] = parseFloat(item.total);
-        });
-        
-        new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Monthly Revenue (PKR)",
-                    data: data,
-                    borderColor: "#667eea",
-                    backgroundColor: "rgba(102, 126, 234, 0.1)",
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: "#667eea",
-                    pointBorderColor: "#fff",
-                    pointBorderWidth: 2,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
+function syncMembershipStatus() {
+    Swal.fire({
+        title: "Sync Membership Status?",
+        text: "This will check all members and automatically mark those with past expiry dates as EXPIRED.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#667eea",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Start Sync"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: "Syncing...",
+                text: "Please wait while we update records",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: "' . APP_URL . '/ajax/members_update_expiry.php",
+                type: "POST",
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Sync Complete",
+                            text: response.message
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire("Error", response.message, "error");
                     }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return "Rs " + value.toLocaleString();
-                            }
-                        }
-                    }
+                error: function() {
+                    Swal.fire("Error", "A server error occurred during sync.", "error");
                 }
-            }
-        });
+            });
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, \'0\') + \':\' + 
+                        now.getMinutes().toString().padStart(2, \'0\') + \':\' + 
+                        now.getSeconds().toString().padStart(2, \'0\');
+        
+        const dateOptions = { weekday: \'long\', year: \'numeric\', month: \'long\', day: \'numeric\' };
+        const dateStr = now.toLocaleDateString(\'en-US\', dateOptions);
+        
+        const clockEl = document.getElementById(\'dashboard-clock\');
+        const dateEl = document.getElementById(\'dashboard-date\');
+        
+        if (clockEl) clockEl.textContent = timeStr;
+        if (dateEl) dateEl.textContent = dateStr;
     }
+
+    updateClock();
+    setInterval(updateClock, 1000);
 });
 </script>
 ';

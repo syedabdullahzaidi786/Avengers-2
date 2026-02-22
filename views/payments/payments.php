@@ -133,9 +133,24 @@ $pageContent .= '
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th class="text-end">Total:</th>
+                                    <th class="text-end">Subtotal:</th>
                                     <th>
-                                        <input type="number" class="form-control form-control-sm fw-bold" id="paymentTotal" readonly value="0.00">
+                                        <input type="number" class="form-control form-control-sm" id="paymentSubtotal" readonly value="0.00">
+                                    </th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th class="text-end">Discount (%):</th>
+                                    <th>
+                                        <input type="number" class="form-control form-control-sm" id="paymentDiscountPercent" name="discount_percent" value="0" min="0" max="100" oninput="calculateTotal()">
+                                    </th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th class="text-end text-primary">Total:</th>
+                                    <th>
+                                        <input type="number" class="form-control form-control-sm fw-bold border-primary text-primary" id="paymentTotal" readonly value="0.00">
+                                        <input type="hidden" id="paymentDiscountAmount" name="discount_amount" value="0">
                                     </th>
                                     <th></th>
                                 </tr>
@@ -268,7 +283,10 @@ function addPaymentForm() {
     document.getElementById("paymentId").value = "";
     document.getElementById("paymentDate").valueAsDate = new Date();
     document.getElementById("feeItemsBody").innerHTML = "";
+    document.getElementById("paymentSubtotal").value = "0.00";
+    document.getElementById("paymentDiscountPercent").value = "0";
     document.getElementById("paymentTotal").value = "0.00";
+    document.getElementById("paymentDiscountAmount").value = "0";
     document.getElementById("memberSummaryContainer").style.display = "none";
     document.getElementById("memberSummaryContainer").innerHTML = "";
     
@@ -340,12 +358,20 @@ function updateRowAmount(select) {
 }
 
 function calculateTotal() {
-    let total = 0;
+    let subtotal = 0;
     document.querySelectorAll(".fee-amount-input").forEach(input => {
         const val = parseFloat(input.value);
-        if (!isNaN(val)) total += val;
+        if (!isNaN(val)) subtotal += val;
     });
-    console.log("Calculated Total:", total);
+    
+    const discountPercent = parseFloat(document.getElementById("paymentDiscountPercent").value) || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const total = subtotal - discountAmount;
+    
+    console.log("Calculated Subtotal:", subtotal, "Discount:", discountAmount, "Total:", total);
+    
+    document.getElementById("paymentSubtotal").value = subtotal.toFixed(2);
+    document.getElementById("paymentDiscountAmount").value = discountAmount.toFixed(2);
     document.getElementById("paymentTotal").value = total.toFixed(2);
 }
 

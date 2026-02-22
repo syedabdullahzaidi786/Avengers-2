@@ -77,7 +77,7 @@ class Member
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT m.*, p.name as plan_name, p.duration, p.price, t.name as trainer_name 
+                'SELECT m.*, p.name as plan_name, p.duration, p.price, t.name as trainer_name, t.specialization 
                  FROM members m 
                  JOIN membership_plans p ON m.plan_id = p.id 
                  LEFT JOIN trainers t ON m.trainer_id = t.id 
@@ -243,23 +243,26 @@ class Member
     }
 
     /**
-     * Update member status (expire if needed)
+     * Update all members status to expired if their end_date is past current date
+     * and they are currently marked as active.
      */
-    public function updateMemberStatus($id)
+    public function updateAllExpiredMemberships()
     {
         try {
-            $stmt = $this->pdo->prepare('SELECT end_date FROM members WHERE id = ?');
-            $stmt->execute([$id]);
-            $member = $stmt->fetch();
+            // Count how many will be updated
+            $countStmt = $this->pdo->prepare('SELECT COUNT(*) FROM members WHERE end_date < CURDATE() AND status = "active"');
+            $countStmt->execute();
+            $count = $countStmt->fetchColumn();
 
-            if ($member && $member['end_date'] < date('Y-m-d')) {
-                $updateStmt = $this->pdo->prepare('UPDATE members SET status = "expired" WHERE id = ?');
-                return $updateStmt->execute([$id]);
+            if ($count > 0) {
+                $updateStmt = $this->pdo->prepare('UPDATE members SET status = "expired" WHERE end_date < CURDATE() AND status = "active"');
+                $updateStmt->execute();
             }
-            return true;
+            
+            return $count;
         }
         catch (PDOException $e) {
-            error_log('Error: ' . $e->getMessage());
+            error_log('Error in updateAllExpiredMemberships: ' . $e->getMessage());
             return false;
         }
     }

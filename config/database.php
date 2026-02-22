@@ -16,7 +16,7 @@ define('DB_NAME', 'avengers');
 date_default_timezone_set('Asia/Karachi');
 
 // Application constants
-define('APP_NAME', 'Avengers Gym & Fitness');
+define('APP_NAME', 'Avengers Gym & Fitness 2');
 define('APP_URL', 'http://localhost/Avengers');
 define('APP_DEBUG', true);
 define('SESSION_TIMEOUT', 1800); // 30 minutes in seconds

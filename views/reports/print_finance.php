@@ -126,6 +126,7 @@ $netProfit = $totalRevenue - ($totalExpenses + $totalCommissions);
     <div class="thermal-receipt">
         <div class="center">
             <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" class="logo">
+            <div class="bold" style="font-size: 16px;">Avengers Gym & Fitness 2</div>
             <div class="bold"><?php echo $title; ?></div>
             <div><?php echo date('d-M-Y h:i A'); ?></div>
         </div>

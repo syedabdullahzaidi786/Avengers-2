@@ -259,12 +259,13 @@ if (!$member) {
 <div class="id-card-container">
     <div class="id-card" id="idCard">
         <div class="id-card-left">
-            <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2964/2964514.png'">
+            <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span style="display:none;font-size:1rem;font-weight:800;color:white;z-index:2;"><?php echo strtoupper(APP_NAME); ?></span>
             
             <?php
-$photoUrl = $member['profile_picture'] ? APP_URL . '/' . $member['profile_picture'] : 'https://via.placeholder.com/150?text=Member';
+$defaultAvatar = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect width="150" height="150" fill="#555"/><circle cx="75" cy="55" r="30" fill="#888"/><ellipse cx="75" cy="130" rx="45" ry="35" fill="#888"/></svg>');
+$photoUrl = $member['profile_picture'] ? APP_URL . '/' . $member['profile_picture'] : $defaultAvatar;
 ?>
-            <img src="<?php echo $photoUrl; ?>" alt="Profile" class="member-photo" onerror="this.src='https://via.placeholder.com/150?text=User'">
+            <img src="<?php echo $photoUrl; ?>" alt="Profile" class="member-photo" onerror="this.src='<?php echo $defaultAvatar; ?>'">
             
             <div style="z-index: 2; margin-top: 15px; font-weight: 800; font-size: 0.9rem; letter-spacing: 1px; color: white;">MEMBER</div>
         </div>
@@ -283,13 +284,19 @@ $photoUrl = $member['profile_picture'] ? APP_URL . '/' . $member['profile_pictur
                     <span class="details-value"><?php echo htmlspecialchars($member['phone']); ?></span>
                 </div>
                 <div class="details-row">
-                    <span class="details-label">VALID THRU:</span>
-                    <span class="details-value"><?php echo date('d M Y', strtotime($member['end_date'])); ?></span>
-                </div>
-                <div class="details-row">
                     <span class="details-label">PLAN:</span>
                     <span class="details-value"><?php echo htmlspecialchars($member['plan_name']); ?></span>
                 </div>
+                <?php if ($member['trainer_id']): ?>
+                <div class="details-row">
+                    <span class="details-label">TRAINER:</span>
+                    <span class="details-value"><?php echo htmlspecialchars($member['trainer_name']); ?></span>
+                </div>
+                <div class="details-row">
+                    <span class="details-label">SPECIALTY:</span>
+                    <span class="details-value"><?php echo htmlspecialchars($member['specialization'] ?? 'General Fitness'); ?></span>
+                </div>
+                <?php endif; ?>
             </div>
 
             <div class="qr-code-wrap">
@@ -299,7 +306,7 @@ $photoUrl = $member['profile_picture'] ? APP_URL . '/' . $member['profile_pictur
             </div>
             
             <div class="id-card-footer">
-                THE AVENGERS GYM & FITNESS - ISLAMABAD
+                <?php echo strtoupper(APP_NAME); ?>
             </div>
         </div>
     </div>
@@ -311,7 +318,7 @@ $photoUrl = $member['profile_picture'] ? APP_URL . '/' . $member['profile_pictur
     </button>
     
     <?php
-$whatsappText = "Hello " . $member['full_name'] . ", your " . APP_NAME . " ID Card is ready!\n\nMembership ID: " . str_pad($member['id'], 6, '0', STR_PAD_LEFT) . "\nExpiry Date: " . date('d M Y', strtotime($member['end_date'])) . "\n\nPlease download and keep this card with you.";
+$whatsappText = "Asalam-O-Alikum " . $member['full_name'] . ", your " . APP_NAME . " ID Card is ready!\n\nMembership ID: " . str_pad($member['id'], 6, '0', STR_PAD_LEFT) . "\nExpiry Date: " . date('d M Y', strtotime($member['end_date'])) . "\n\nPlease download and keep this card with you.";
 $whatsappUrl = "https://wa.me/" . preg_replace('/[^0-9]/', '', $member['phone']) . "?text=" . urlencode($whatsappText);
 ?>
     <a href="<?php echo $whatsappUrl; ?>" target="_blank" class="action-btn btn-wa" title="Share Message on WhatsApp">
@@ -338,20 +345,43 @@ $whatsappUrl = "https://wa.me/" . preg_replace('/[^0-9]/', '', $member['phone'])
     function downloadCard() {
         const card = document.getElementById("idCard");
         const btn = document.querySelector('.btn-down');
+        
+        // Disable button and show spinner
+        btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin fa-lg"></i>';
+        
+        console.log('Starting ID Card capture...');
         
         html2canvas(card, {
             useCORS: true,
-            scale: 2,
-            backgroundColor: null
+            allowTaint: true,
+            scale: 3, // Higher quality
+            backgroundColor: null,
+            logging: true,
+            letterRendering: true
         }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'ID_Card_<?php echo $member['id']; ?>.png';
-            link.href = canvas.toDataURL("image/png");
-            link.click();
+            console.log('Canvas generated successfully');
+            try {
+                const imgData = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = 'ID_Card_<?php echo $member['id']; ?>.png';
+                link.href = imgData;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log('Download triggered');
+            } catch (e) {
+                console.error('Error generating image data:', e);
+                alert('Could not generate image. This might be due to security restrictions on the profile photo. Try printing as PDF instead.');
+            }
+            
+            // Restore button
+            btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-download fa-lg"></i>';
         }).catch(err => {
-            console.error('Download failed:', err);
+            console.error('Capture failed:', err);
+            alert('ID Card capture failed. Please check the console for details.');
+            btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-download fa-lg"></i>';
         });
     }

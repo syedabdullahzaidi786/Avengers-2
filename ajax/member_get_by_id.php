@@ -20,9 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     try {
         // Fetch member with plan details
         $stmt = $pdo->prepare("
-            SELECT m.*, p.name as plan_name, p.price, p.duration 
+            SELECT m.*, p.name as plan_name, p.price, p.duration,
+                   t.name as trainer_name, t.fee as trainer_fee
             FROM members m 
             JOIN membership_plans p ON m.plan_id = p.id 
+            LEFT JOIN trainers t ON m.trainer_id = t.id
             WHERE m.id = ?
         ");
         $stmt->execute([$id]);

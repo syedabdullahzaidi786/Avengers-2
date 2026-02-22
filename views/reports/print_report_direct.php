@@ -59,7 +59,7 @@ try {
     /* 3. HEADER - AR FITNESS CLUB */
     $printer->setJustification(Printer::JUSTIFY_CENTER);
     $printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH | Printer::MODE_DOUBLE_HEIGHT);
-    $printer->text("Avengers Gym & Fitness\n");
+    $printer->text("Avengers Gym & Fitness 2\n");
     $printer->selectPrintMode(Printer::MODE_FONT_A);
     $printer->setEmphasis(true);
     $printer->text($title . "\n");

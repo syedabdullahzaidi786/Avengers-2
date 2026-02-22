@@ -9,17 +9,24 @@ require_once __DIR__ . '/../../models/Payment.php';
 
 requireLogin();
 
-if (empty($_GET['id'])) {
-    header('Location: ' . APP_URL . '/views/payments/payments.php');
-    exit;
+$paymentId = $_GET['id'] ?? null;
+$receiptNo = $_GET['receipt_no'] ?? null;
+$paymentModel = new Payment($pdo);
+$firstPayment = null;
+
+if ($paymentId) {
+    $firstPayment = $paymentModel->getPaymentById($paymentId);
 }
 
-$paymentModel = new Payment($pdo);
-$firstPayment = $paymentModel->getPaymentById($_GET['id']);
+if (!$firstPayment && $receiptNo) {
+    $payments = $paymentModel->getPaymentsByReceipt($receiptNo);
+    if (!empty($payments)) {
+        $firstPayment = $payments[0];
+    }
+}
 
 if (!$firstPayment) {
-    header('Location: ' . APP_URL . '/views/payments/payments.php');
-    exit;
+    die("Error: Payment not found.");
 }
 
 // Fetch all items for this receipt
@@ -134,7 +141,7 @@ foreach ($payments as $p) {
         <div class="center">
             <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" class="logo">
             <div class="line">
-                <strong style="font-size: 16px;">PAYMENT RECEIPT</strong>
+                <strong style="font-size: 16px;"><?php echo $_GET['title'] ?? 'PAYMENT RECEIPT'; ?></strong>
             </div>
         </div>
         
@@ -163,6 +170,10 @@ foreach ($payments as $p) {
             <strong style="font-size: 11px;">MEMBER DETAILS</strong>
         </div>
         <div class="row">
+            <span class="label">Membership No:</span>
+            <span class="value"><?php echo str_pad($firstPayment['member_id'], 6, '0', STR_PAD_LEFT); ?></span>
+        </div>
+        <div class="row">
             <span class="label">Name:</span>
             <span class="value"><?php echo escapeHtml($firstPayment['full_name']); ?></span>
         </div>
@@ -179,21 +190,44 @@ foreach ($payments as $p) {
             <strong style="font-size: 11px;">PAYMENT DETAILS</strong>
         </div>
         
-        <?php foreach ($payments as $item): ?>
+        <?php 
+        // Parsing discount from description
+        $discountData = null;
+        if (!empty($firstPayment['description']) && preg_match('/\(Discount Applied: (\d+)% - Rs ([\d,.]+)\)/', $firstPayment['description'], $matches)) {
+            $discountData = [
+                'percent' => $matches[1],
+                'amount' => (float)str_replace(',', '', $matches[2])
+            ];
+        }
+
+        foreach ($payments as $index => $item): 
+            $displayAmount = $item['amount'];
+            // Add discount back to the first item for "Actual Fee" display
+            if ($index === 0 && $discountData) {
+                $displayAmount += $discountData['amount'];
+            }
+        ?>
         <div class="row">
             <span class="label"><?php echo escapeHtml($item['fee_type_name'] ?? 'Membership Fee'); ?>:</span>
-            <span class="value">Rs <?php echo number_format($item['amount'], 0); ?></span>
+            <span class="value">Rs <?php echo number_format($displayAmount, 0); ?></span>
         </div>
-        <?php
-endforeach; ?>
+        <?php endforeach; ?>
 
-        <?php if (!empty($firstPayment['description'])): ?>
-        <div class="row">
-            <span class="label">Note:</span>
-            <span class="value"><?php echo escapeHtml($firstPayment['description']); ?></span>
+        <?php if ($discountData): ?>
+        <div class="row" style="color: #d9534f; font-style: italic;">
+            <span class="label">Discount (<?php echo $discountData['percent']; ?>%):</span>
+            <span class="value">- Rs <?php echo number_format($discountData['amount'], 0); ?></span>
         </div>
-        <?php
-endif; ?>
+        <?php endif; ?>
+
+        <?php 
+        // Clean description for display (remove the machine-readable discount part if desired, 
+        // or just show everything else)
+        $cleanDesc = $firstPayment['description'];
+        if ($discountData) {
+            $cleanDesc = trim(preg_replace('/\(Discount Applied: \d+% - Rs [\d,.]+\)/', '', $cleanDesc));
+        }
+        
         <div class="row">
             <span class="label">Method:</span>
             <span class="value"><?php echo ucfirst(str_replace('_', ' ', $firstPayment['payment_method'])); ?></span>
@@ -215,7 +249,7 @@ endif; ?>
     </div>
     
     <div class="no-print" style="text-align: center; margin-top: 20px;">
-        <button onclick="window.location.href='print_receipt.php?id=<?php echo $_GET['id']; ?>'" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">
+        <button onclick="window.location.href='print_receipt.php?id=<?php echo $_GET['id']; ?>&title=<?php echo urlencode($_GET['title'] ?? 'PAYMENT RECEIPT'); ?>'" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">
             ⚡ Direct Thermal Print
         </button>
         <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; margin-left: 10px;">

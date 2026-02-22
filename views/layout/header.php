@@ -52,7 +52,6 @@ endif; ?>
                             <ul class="nav-links">
                                 <li><a href="<?php echo APP_URL; ?>/index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>"><i class="fas fa-chart-line"></i> Dashboard</a></li>
                                 <li><a href="<?php echo APP_URL; ?>/views/members/members.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'members.php' ? 'active' : ''; ?>"><i class="fas fa-users"></i> Members</a></li>
-                                <li><a href="<?php echo APP_URL; ?>/views/members/generate_id.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'generate_id.php' ? 'active' : ''; ?>"><i class="fas fa-id-card"></i> Generate ID</a></li>
                                 <li><a href="<?php echo APP_URL; ?>/views/payments/payments.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'payments.php' ? 'active' : ''; ?>"><i class="fas fa-credit-card"></i> Payments</a></li>
                                 <li><a href="<?php echo APP_URL; ?>/views/attendance/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'attendance') !== false ? 'active' : ''; ?>"><i class="fas fa-calendar-check"></i> Attendance</a></li>
                                 <li><a href="<?php echo APP_URL; ?>/views/trainers/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], 'trainers') !== false ? 'active' : ''; ?>"><i class="fas fa-dumbbell"></i> Trainers</a></li>

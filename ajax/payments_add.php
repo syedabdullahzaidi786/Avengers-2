@@ -28,8 +28,19 @@ $description = $_POST['description'] ?? '';
 // Check if we have multiple items
 $items = isset($_POST['items']) ? json_decode($_POST['items'], true) : null;
 
+$discountPercent = $_POST['discount_percent'] ?? 0;
+$discountAmount = $_POST['discount_amount'] ?? 0;
+
 // Generate shared receipt number
 $receiptNumber = 'REC-' . date('YmdHis') . '-' . $memberId;
+
+// Update description if discount applied
+if ($discountPercent > 0) {
+    if (!empty($description)) {
+        $description .= "\n";
+    }
+    $description .= "(Discount Applied: " . $discountPercent . "% - Rs " . number_format($discountAmount, 2) . ")";
+}
 
 $successCount = 0;
 $firstPaymentId = null;
@@ -39,9 +50,14 @@ try {
 
     if ($items && is_array($items) && count($items) > 0) {
         // Bulk insertion
-        foreach ($items as $item) {
+        foreach ($items as $index => $item) {
             $feeTypeId = $item['fee_type_id'] ?? 1;
             $amount = $item['amount'] ?? 0;
+
+            // Apply discount to the first valid item
+            if ($index === 0 && $discountAmount > 0) {
+                $amount = max(0, $amount - $discountAmount);
+            }
 
             if ($amount > 0) {
                 $result = $paymentModel->addPayment($memberId, $amount, $paymentMethod, $paymentDate, $description, $feeTypeId, $receiptNumber);

@@ -6,6 +6,11 @@
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../models/Member.php';
+require_once __DIR__ . '/../../models/FeeType.php';
+
+$feeTypeModel = new FeeType($pdo);
+$feeTypes = $feeTypeModel->getAllFeeTypes();
+$feeTypesJson = json_encode($feeTypes);
 
 // Set page title
 $pageTitle = 'Renew Membership';
@@ -87,18 +92,53 @@ $pageContent = '
                 <hr class="glass-hr">
 
                 <div class="payment-section mt-4">
-                    <h5 class="mb-3">Renewal Payment</h5>
-                    <div class="row align-items-end g-3">
+                    <h5 class="mb-3">Renewal Payment Details</h5>
+                    
+                    <!-- Fee Items Table -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-bordered" id="feeItemsTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width: 55%;">Fee Type</th>
+                                    <th style="width: 35%;">Amount (Rs)</th>
+                                    <th style="width: 10%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="feeItemsBody">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <th class="text-end">Subtotal:</th>
+                                    <th><input type="number" class="form-control form-control-sm border-0 bg-transparent fw-bold" id="renewalSubtotal" readonly value="0.00"></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th class="text-end text-danger text-nowrap">
+                                        Discount (%):
+                                        <input type="number" class="form-control form-control-sm d-inline-block ms-1" id="renewalDiscountPercent" style="width: 60px;" value="0" min="0" max="100" oninput="calculateTotal()">
+                                    </th>
+                                    <th><input type="number" class="form-control form-control-sm border-0 bg-transparent text-danger fw-bold" id="renewalDiscountAmount" readonly value="0.00"></th>
+                                    <th></th>
+                                </tr>
+                                <tr>
+                                    <th class="text-end text-primary">Total:</th>
+                                    <th>
+                                        <input type="number" class="form-control form-control-sm fw-bold border-0 bg-transparent text-primary" id="renewalTotal" readonly value="0.00">
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFeeRow()">
+                            <i class="fas fa-plus"></i> Add Extra Fee
+                        </button>
+                    </div>
+
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Plan Fee (Rs)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rs</span>
-                                <input type="number" id="renewalAmount" class="form-control form-control-lg fw-bold" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Payment Method</label>
-                            <select id="paymentMethod" class="form-select form-control-lg">
+                            <label class="form-label small">Payment Method</label>
+                            <select id="paymentMethod" class="form-select">
                                 <option value="cash">Cash</option>
                                 <option value="easypaisa">EasyPaisa</option>
                                 <option value="jazzcash">JazzCash</option>
@@ -107,11 +147,15 @@ $pageContent = '
                                 <option value="bank_transfer">Bank Transfer</option>
                             </select>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Payment Date</label>
+                            <input type="date" id="paymentDate" class="form-control" value="' . date('Y-m-d') . '">
+                        </div>
                     </div>
 
                     <div class="d-grid gap-2 mt-4">
                         <button type="button" class="btn btn-success btn-lg" onclick="processRenewal()">
-                            <i class="fas fa-check-circle"></i> Process Renewal
+                            <i class="fas fa-check-circle"></i> Process Renewal & Print
                         </button>
                     </div>
                 </div>
@@ -129,6 +173,7 @@ $pageContent = '
 </div>
 
 <script>
+const feeTypes = ' . $feeTypesJson . ';
 let currentMember = null;
 
 function searchMember(e) {
@@ -157,6 +202,62 @@ function searchMember(e) {
     });
 }
 
+function addFeeRow(defaultId = null, defaultAmount = null) {
+    const tbody = document.getElementById("feeItemsBody");
+    const tr = document.createElement("tr");
+    
+    let options = "<option value=\"\">Select Fee Type</option>";
+    feeTypes.forEach(ft => {
+        const selected = (defaultId != null && String(ft.id) === String(defaultId)) ? "selected" : "";
+        options += `<option value="${ft.id}" data-amount="${ft.default_amount}" ${selected}>${ft.name}</option>`;
+    });
+    
+    tr.innerHTML = `
+        <td><select class="form-select form-select-sm fee-type-select" onchange="updateRowAmount(this)" required>${options}</select></td>
+        <td><input type="number" class="form-control form-control-sm fee-amount-input" value="${defaultAmount !== null ? defaultAmount : ""}" step="0.01" min="0" oninput="calculateTotal()" required></td>
+        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFeeRow(this)"><i class="fas fa-times"></i></button></td>
+    `;
+    
+    tbody.appendChild(tr);
+    if (defaultId && defaultAmount === null) {
+        const select = tr.querySelector(".fee-type-select");
+        updateRowAmount(select);
+    } else {
+        calculateTotal();
+    }
+}
+
+function removeFeeRow(btn) {
+    btn.closest("tr").remove();
+    calculateTotal();
+}
+
+function updateRowAmount(select) {
+    const amountInput = select.closest("tr").querySelector(".fee-amount-input");
+    const selectedOption = select.options[select.selectedIndex];
+    const defaultAmount = selectedOption.getAttribute("data-amount");
+    if (defaultAmount && defaultAmount !== "null") {
+        amountInput.value = defaultAmount;
+    }
+    calculateTotal();
+}
+
+function calculateTotal() {
+    let subtotal = 0;
+    document.querySelectorAll(".fee-amount-input").forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) subtotal += val;
+    });
+    
+    const discountPercent = parseFloat(document.getElementById("renewalDiscountPercent").value) || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const total = subtotal - discountAmount;
+    
+    document.getElementById("renewalSubtotal").value = subtotal.toFixed(2);
+    document.getElementById("renewalDiscountAmount").value = discountAmount.toFixed(2);
+    document.getElementById("renewalTotal").value = total.toFixed(2);
+}
+
 function showMemberDetails(member) {
     document.getElementById("searchPlaceholder").style.display = "none";
     document.getElementById("memberDetailsCard").style.display = "block";
@@ -165,16 +266,41 @@ function showMemberDetails(member) {
     document.getElementById("displayMemberPhone").textContent = member.phone;
     document.getElementById("displayMemberPlan").textContent = member.plan_name;
     document.getElementById("displayMemberExpiry").textContent = formatDate(member.end_date);
-    document.getElementById("renewalAmount").value = member.price;
+    
+    // Clear and build fee table
+    document.getElementById("feeItemsBody").innerHTML = "";
+    
+    // 1. Add Membership Fee (Fee Type 1)
+    const planPrice = parseFloat(member.price) || 0;
+    addFeeRow(1, planPrice);
+    
+    // 2. Add Trainer Fee if applicable
+    const trainerFee = parseFloat(member.trainer_fee) || 0;
+    if (trainerFee > 0) {
+        const ft = findTrainerFeeType(member.trainer_name);
+        addFeeRow(ft ? ft.id : 4, trainerFee); // Default to 4 if not matched
+    }
+    
+    document.getElementById("renewalDiscountPercent").value = 0;
+    calculateTotal();
 
     const statusBadge = document.getElementById("memberStatusBadge");
     if (member.status === "active") {
-        statusBadge.className = "badge badge-success";
+        statusBadge.className = "badge bg-success";
         statusBadge.textContent = "Active";
     } else {
-        statusBadge.className = "badge badge-danger";
+        statusBadge.className = "badge bg-danger";
         statusBadge.textContent = "Expired";
     }
+}
+
+function findTrainerFeeType(trainerName) {
+    if (!trainerName) return null;
+    return feeTypes.find(f => 
+        f.name.toLowerCase().includes(trainerName.toLowerCase()) || 
+        f.name.toLowerCase().includes("trainer") || 
+        f.name.toLowerCase().includes("personal")
+    );
 }
 
 function resetSearch() {
@@ -186,25 +312,46 @@ function resetSearch() {
 function processRenewal() {
     if (!currentMember) return;
 
+    const items = [];
+    document.querySelectorAll("#feeItemsBody tr").forEach(row => {
+        const feeTypeId = row.querySelector(".fee-type-select").value;
+        const amount = row.querySelector(".fee-amount-input").value;
+        if (feeTypeId && amount > 0) {
+            items.push({ fee_type_id: feeTypeId, amount: amount });
+        }
+    });
+
+    if (items.length === 0) {
+        Swal.fire("Error", "Please add at least one fee item.", "error");
+        return;
+    }
+
+    const subtotal = parseFloat(document.getElementById("renewalSubtotal").value) || 0;
+    const discountPercent = parseFloat(document.getElementById("renewalDiscountPercent").value) || 0;
+    const discountAmount = parseFloat(document.getElementById("renewalDiscountAmount").value) || 0;
+    const totalAmount = parseFloat(document.getElementById("renewalTotal").value) || 0;
+    const method = document.getElementById("paymentMethod").value;
+    const paymentDate = document.getElementById("paymentDate").value;
+
     Swal.fire({
         title: "Confirm Renewal?",
-        text: `Process renewal for ${currentMember.full_name} for Rs ${currentMember.price}?`,
+        text: `Process renewal for ${currentMember.full_name} for total Rs ${totalAmount.toLocaleString()}?`,
         icon: "question",
         showCancelButton: true,
         confirmButtonColor: "#28a745",
         confirmButtonText: "Yes, Renew Now"
     }).then((result) => {
         if (result.isConfirmed) {
-            const amount = document.getElementById("renewalAmount").value;
-            const method = document.getElementById("paymentMethod").value;
-
             $.ajax({
                 url: "' . APP_URL . '/ajax/membership_renew.php",
                 type: "POST",
                 data: {
                     member_id: currentMember.id,
-                    amount: amount,
-                    payment_method: method
+                    items: JSON.stringify(items),
+                    discount_percent: discountPercent,
+                    discount_amount: discountAmount,
+                    payment_method: method,
+                    payment_date: paymentDate
                 },
                 dataType: "json",
                 success: function(response) {
@@ -220,7 +367,6 @@ function processRenewal() {
                             if (printResult.isConfirmed) {
                                 printReceipt(response.receipt);
                             }
-                            // Refresh member data or reset
                             searchMember(); 
                         });
                     } else {
@@ -233,157 +379,14 @@ function processRenewal() {
 }
 
 function printReceipt(receipt) {
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>Receipt #${receipt.receipt_number}</title>
-                <style>
-                    @page {
-                        size: 80mm auto;
-                        margin: 0;
-                    }
-                    body {
-                        font-family: \'Courier New\', monospace;
-                        background: #eee;
-                        padding: 20px;
-                        margin: 0;
-                    }
-                    .thermal-receipt {
-                        width: 70mm;
-                        margin: 0 auto;
-                        padding: 5px;
-                        background: white;
-                        box-shadow: 0 0 5px rgba(0,0,0,0.1);
-                        font-size: 12px;
-                        line-height: 1.3;
-                        color: #000;
-                        font-weight: 600;
-                        word-wrap: break-word;
-                    }
-                    .center {
-                        text-align: center;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                    }
-                    .logo {
-                        max-width: 80px;
-                        max-height: 80px;
-                        margin-bottom: 5px;
-                        filter: grayscale(100%);
-                    }
-                    .line {
-                        text-align: center;
-                        margin: 2px 0;
-                    }
-                    .dashed-line {
-                        text-align: center;
-                        margin: 5px 0;
-                        border-top: 1px dashed #000;
-                    }
-                    .row {
-                        display: flex;
-                        justify-content: space-between;
-                        margin: 2px 0;
-                    }
-                    .label {
-                        font-weight: 800;
-                        font-size: 11px;
-                        width: 40%;
-                        text-align: left;
-                    }
-                    .value {
-                        text-align: right;
-                        font-size: 11px;
-                        width: 60%;
-                        word-wrap: break-word;
-                    }
-                    .amount-row {
-                        margin: 5px 0;
-                        padding: 5px 0;
-                        border-top: 2px solid #000;
-                        border-bottom: 2px solid #000;
-                        font-weight: 800;
-                        font-size: 14px;
-                        text-align: center;
-                    }
-                    @media print {
-                        body {
-                            background: white;
-                            padding: 0;
-                            margin: 0;
-                        }
-                        .thermal-receipt {
-                            box-shadow: none;
-                            width: 100%;
-                            margin: 0;
-                            padding: 0;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="thermal-receipt">
-                    <div class="center">
-                        <img src="${window.location.origin}${window.location.pathname.split(\'/\').slice(0, -3).join(\'/\')}/assets/images/logo.png" alt="Logo" class="logo" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/2964/2964514.png\'">
-                        <div class="line">
-                            <strong style="font-size: 16px;">PAYMENT RECEIPT</strong>
-                        </div>
-                    </div>
-                    
-                    <div class="dashed-line">- - - - - - - - - - - - - - - - - - - -</div>
-                    
-                    <div class="row">
-                        <span class="label">Receipt No:</span>
-                        <span class="value">${receipt.receipt_number}</span>
-                    </div>
-                    <div class="row">
-                        <span class="label">Date:</span>
-                        <span class="value">${new Date(receipt.date).toLocaleDateString(\'en-GB\', {day: \'2-digit\', month: \'short\', year: \'numeric\'})}</span>
-                    </div>
-                    
-                    <div class="dashed-line">- - - - - - - - - - - - - - - - - - - -</div>
-                    
-                    <div style="margin: 8px 0;">
-                        <strong style="font-size: 11px;">MEMBER DETAILS</strong>
-                    </div>
-                    <div class="row">
-                        <span class="label">Name:</span>
-                        <span class="value">${currentMember.full_name}</span>
-                    </div>
-                    <div class="row">
-                        <span class="label">Phone:</span>
-                        <span class="value">${currentMember.phone}</span>
-                    </div>
-                    
-                    <div class="dashed-line">- - - - - - - - - - - - - - - - - - - -</div>
-                    
-                    <div style="margin: 8px 0;">
-                        <strong style="font-size: 11px;">PAYMENT DETAILS</strong>
-                    </div>
-                    <div class="row">
-                        <span class="label">Membership ${currentMember.plan_name}:</span>
-                        <span class="value">Rs ${parseFloat(receipt.amount).toLocaleString()}</span>
-                    </div>
-                    
-                    <div class="amount-row">
-                        TOTAL: Rs ${parseFloat(receipt.amount).toLocaleString()}
-                    </div>
-                    
-                    <div class="center" style="margin-top: 10px; font-size: 10px; text-align: center;">
-                        <p>** Thank You **</p>
-                        <p style="font-size: 10px; margin-top: 5px;">
-                            Software Design & Developed By: AR Cloud<br>
-                            Contact: +92 3313771572
-                        </p>
-                    </div>
-                </div>
-                <script>window.onload = function() { window.print(); setTimeout(function() { window.close(); }, 500); }<\/script>
-            </body>
-        </html>
-    `);
-    printWindow.document.close();
+    if (!receipt || !receipt.receipt_number) return;
+    
+    // Use direct thermal printer script with a custom title for renewal
+    const printUrl = `' . APP_URL . '/views/payments/print_receipt.php?id=${receipt.id || ""}&receipt_no=${receipt.receipt_number}&title=RENEWAL RECEIPT`;
+    
+    // We can also fall back to the browseable receipt if needed, 
+    // but the user requested direct thermal printer work same as payments.
+    window.open(printUrl, "_blank");
 }
 
 function formatDate(date) {
