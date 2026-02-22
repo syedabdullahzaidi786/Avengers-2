@@ -128,8 +128,11 @@ $pageContent .= '
                                     <th width="50"></th>
                                 </tr>
                             </thead>
-                            <tbody id="feeItemsBody">
-                                <!-- Dynamic Rows -->
+                            <tbody id="defaultFeesBody">
+                                <!-- Default Fees (Read-only) -->
+                            </tbody>
+                            <tbody id="customFeesBody">
+                                <!-- Custom Fees (Editable) -->
                             </tbody>
                             <tfoot>
                                 <tr>
@@ -156,9 +159,10 @@ $pageContent .= '
                                 </tr>
                             </tfoot>
                         </table>
-                        <button type="button" class="btn btn-sm btn-success" onclick="addFeeRow()">
-                            <i class="fas fa-plus"></i> Add Fee
+                        <button type="button" class="btn btn-sm btn-success" onclick="addCustomFeeRow()">
+                            <i class="fas fa-plus"></i> Add Additional Fee
                         </button>
+                        <small class="d-block mt-2 text-muted"><strong>Note:</strong> Membership and Trainer fees are auto-selected and cannot be edited.</small>
                     </div>
                     
                     <div class="mb-3">
@@ -196,6 +200,12 @@ $pageContent .= '
 // Output page with layout
 $additionalJS .= '<script>
 let feeTypes = ' . $feeTypesJson . ';
+
+console.log("FeeTypes loaded:", feeTypes);
+console.log("FeeTypes count:", feeTypes.length);
+if (feeTypes.length > 0) {
+    console.log("First fee type:", feeTypes[0]);
+}
 
 function loadPayments() {
     $.ajax({
@@ -282,7 +292,8 @@ function addPaymentForm() {
     document.getElementById("paymentForm").reset();
     document.getElementById("paymentId").value = "";
     document.getElementById("paymentDate").valueAsDate = new Date();
-    document.getElementById("feeItemsBody").innerHTML = "";
+    document.getElementById("defaultFeesBody").innerHTML = "";
+    document.getElementById("customFeesBody").innerHTML = "";
     document.getElementById("paymentSubtotal").value = "0.00";
     document.getElementById("paymentDiscountPercent").value = "0";
     document.getElementById("paymentTotal").value = "0.00";
@@ -290,21 +301,38 @@ function addPaymentForm() {
     document.getElementById("memberSummaryContainer").style.display = "none";
     document.getElementById("memberSummaryContainer").innerHTML = "";
     
-    // Add default row
-    addFeeRow(1); // Default to Membership Fee
-    
     document.getElementById("membershipNoInput").focus();
     document.querySelector("#paymentModal .modal-title").textContent = "Add Payment";
     document.querySelector("#paymentForm button[type=\'submit\']").textContent = "Save Payment";
 }
 
-function addFeeRow(defaultId = null, defaultAmount = null) {
-    const tbody = document.getElementById("feeItemsBody");
+// Add read-only default fee row (for Membership and Trainer fees)
+function addDefaultFeeRow(feeTypeId, feeName, amount) {
+    const tbody = document.getElementById("defaultFeesBody");
+    const tr = document.createElement("tr");
+    
+    console.log("addDefaultFeeRow called with:", { feeTypeId, feeName, amount });
+    
+    tr.classList.add("table-light");
+    tr.innerHTML = "<td><span class=\"badge bg-secondary\">" + escapeHtml(feeName) + "</span></td>" + 
+                   "<td><input type=\"text\" class=\"form-control form-control-sm\" value=\"Rs " + parseFloat(amount).toFixed(2) + "\" readonly></td>" + 
+                   "<td class=\"text-center\"><span class=\"badge bg-info\">Fixed</span></td>";
+    
+    tr.setAttribute("data-fee-type-id", feeTypeId);
+    tr.setAttribute("data-amount", amount);
+    
+    tbody.appendChild(tr);
+    console.log("Default fee row added to tbody");
+}
+
+// Add editable custom fee row
+function addCustomFeeRow(defaultId = null, defaultAmount = null) {
+    const tbody = document.getElementById("customFeesBody");
     const tr = document.createElement("tr");
     
     let options = "<option value=\"\">Select Fee Type</option>";
     if (!feeTypes || feeTypes.length === 0) {
-        console.error("feeTypes array is empty or not loaded in addFeeRow!");
+        console.error("feeTypes array is empty or not loaded in addCustomFeeRow!");
     } else {
         console.log("Building options from feeTypes:", feeTypes.length);
     }
@@ -318,9 +346,9 @@ function addFeeRow(defaultId = null, defaultAmount = null) {
     
     tr.innerHTML = "<td><select class=\"form-select form-select-sm fee-type-select\" onchange=\"updateRowAmount(this)\" required>" + options + "</select></td>" + 
                    "<td><input type=\"number\" class=\"form-control form-control-sm fee-amount-input\" value=\"" + (defaultAmount !== null ? defaultAmount : "") + "\" step=\"0.01\" min=\"0\" oninput=\"calculateTotal()\" required></td>" + 
-                   "<td class=\"text-center\"><button type=\"button\" class=\"btn btn-sm btn-outline-danger\" onclick=\"removeFeeRow(this)\"><i class=\"fas fa-times\"></i></button></td>";
+                   "<td class=\"text-center\"><button type=\"button\" class=\"btn btn-sm btn-outline-danger\" onclick=\"removeCustomFeeRow(this)\"><i class=\"fas fa-times\"></i></button></td>";
     
-    console.log("Adding Fee Row [ID: " + defaultId + ", Amt: " + defaultAmount + "]");
+    console.log("Adding Custom Fee Row [ID: " + defaultId + ", Amt: " + defaultAmount + "]");
     tbody.appendChild(tr);
     
     const select = tr.querySelector(".fee-type-select");
@@ -340,7 +368,7 @@ function addFeeRow(defaultId = null, defaultAmount = null) {
     }
 }
 
-function removeFeeRow(btn) {
+function removeCustomFeeRow(btn) {
     btn.closest("tr").remove();
     calculateTotal();
 }
@@ -359,6 +387,14 @@ function updateRowAmount(select) {
 
 function calculateTotal() {
     let subtotal = 0;
+    
+    // Add default fees amounts
+    document.querySelectorAll("#defaultFeesBody tr").forEach(tr => {
+        const amount = parseFloat(tr.getAttribute("data-amount"));
+        if (!isNaN(amount)) subtotal += amount;
+    });
+    
+    // Add custom fees amounts
     document.querySelectorAll(".fee-amount-input").forEach(input => {
         const val = parseFloat(input.value);
         if (!isNaN(val)) subtotal += val;
@@ -375,61 +411,21 @@ function calculateTotal() {
     document.getElementById("paymentTotal").value = total.toFixed(2);
 }
 
-function checkAndAddTrainerFee(option) {
-    const trainerId = option.getAttribute("data-trainer-id");
-    const trainerName = option.getAttribute("data-trainer-name");
-    const trainerFee = parseFloat(option.getAttribute("data-trainer-fee")) || 0;
-    
-    console.log("Checking Trainer Fee:", { trainerId, trainerName, trainerFee });
-    
-    if (trainerId && trainerFee > 0) {
-        let exists = false;
-        document.querySelectorAll("#feeItemsBody tr").forEach(row => {
-            const feeSelect = row.querySelector(".fee-type-select");
-            if (feeSelect && feeSelect.selectedIndex >= 0) {
-                const selectedOption = feeSelect.options[feeSelect.selectedIndex];
-                if (selectedOption) {
-                    const text = selectedOption.text.toLowerCase();
-                    // Check if row is already a trainer fee
-                    if (text.includes("trainer") || text.includes("training") || (trainerName && text.includes(trainerName.toLowerCase()))) {
-                        exists = true;
-                    }
-                }
-            }
-        });
-        
-        console.log("Trainer Fee exists in table?", exists);
-        
-        if (!exists) {
-            const ptFeeType = feeTypes.find(ft => 
-                (trainerName && ft.name.toLowerCase().includes(trainerName.toLowerCase())) || 
-                ft.name.toLowerCase().includes("trainer") || 
-                ft.name.toLowerCase().includes("personal") ||
-                ft.name.toLowerCase().includes("training")
-            );
-            
-            console.log("Matched Fee Type for Trainer:", ptFeeType);
-            
-            if (ptFeeType) {
-                addFeeRow(ptFeeType.id, trainerFee);
-            } else {
-                console.warn("No \"Trainer\" fee type found in feeTypes:", feeTypes);
-            }
-        }
-    }
-}
-
 function populateFeesForMember(option) {
     if (!option || !option.value) {
         document.getElementById("memberSummaryContainer").style.display = "none";
         return;
     }
     
+    console.log("populateFeesForMember called with option:", option);
+    
     const memberId = option.value;
     const price = option.getAttribute("data-price");
     const planName = option.getAttribute("data-plan-name");
     const trainerName = option.getAttribute("data-trainer-name");
     const trainerFee = option.getAttribute("data-trainer-fee");
+    
+    console.log("Member data:", { memberId, price, planName, trainerName, trainerFee });
     
     // Update Summary UI
     const summary = document.getElementById("memberSummaryContainer");
@@ -440,66 +436,36 @@ function populateFeesForMember(option) {
         (trainerName ? "<div class=\"d-flex justify-content-between\"><strong>Trainer:</strong> <span>" + trainerName + " (Rs " + (trainerFee || "0") + ")</span></div>" : "") + 
         "</div>";
     
-    // 1. Handle Membership Fee
-    let membershipRowFound = false;
-    const allRows = document.querySelectorAll("#feeItemsBody tr");
-    console.log("Populating fees for Member ID: " + memberId + ". Current rows: " + allRows.length);
+    // Clear previous default fees
+    document.getElementById("defaultFeesBody").innerHTML = "";
+    document.getElementById("customFeesBody").innerHTML = "";
     
-    allRows.forEach((row, idx) => {
-        const select = row.querySelector(".fee-type-select");
-        if (select && String(select.value) === "1") { // 1 is Membership Fee
-            const amountInput = row.querySelector(".fee-amount-input");
-            if (amountInput) {
-                amountInput.value = price || "0.00";
-                membershipRowFound = true;
-                console.log("Row " + idx + ": Updated existing Membership row price to " + amountInput.value);
-            }
-        }
-    });
+    // 1. FORCE ADD Membership Fee (default, read-only) - Always add regardless
+    console.log("FORCE Adding Membership Fee with price:", price);
+    addDefaultFeeRow(1, "Membership Fee", price || "0.00");
     
-    if (!membershipRowFound) {
-        if (allRows.length === 1) {
-            const firstSelect = allRows[0].querySelector(".fee-type-select");
-            const firstAmount = allRows[0].querySelector(".fee-amount-input");
-            if (firstSelect && (firstSelect.value === "" || firstSelect.value == 1)) {
-                console.log("Reusing first row for Membership Fee");
-                firstSelect.value = 1;
-                firstAmount.value = price || "0.00";
-                membershipRowFound = true;
-            }
-        }
+    // 2. FORCE ADD Trainer Fee if assigned (default, read-only)
+    if (trainerName && parseFloat(trainerFee) > 0) {
+        console.log("FORCE Adding Trainer Fee:", trainerName, trainerFee);
+        addDefaultFeeRow(4, "Personal Trainer", trainerFee);
     }
     
-    if (!membershipRowFound && price != null) {
-        console.log("Adding NEW Membership Fee row for price: " + price);
-        addFeeRow(1, price);
-    }
-    
-    // 2. Handle Trainer Fee
-    checkAndAddTrainerFee(option);
-    
-    // 3. New Member Check (Admission Fee Suggestion)
+    // 3. New Member Check (Admission Fee Suggestion - as custom fee)
     $.ajax({
         url: "' . APP_URL . '/ajax/payments_check_previous.php",
         type: "POST",
         data: { member_id: memberId },
         dataType: "json",
         success: function(response) {
+            console.log("Payment check response:", response);
             if (response.success && !response.has_payments) {
                 // Suggest Admission Fee (ID 2 usually)
-                const adminFeeType = feeTypes.find(ft => ft.id == 2 || ft.name.toLowerCase().includes("admission"));
+                const adminFeeType = feeTypes.find(ft => parseInt(ft.id) === 2 || ft.name.toLowerCase().includes("admission"));
+                console.log("Admin fee type found:", adminFeeType);
                 if (adminFeeType) {
-                    let adminExists = false;
-                    document.querySelectorAll("#feeItemsBody tr").forEach(r => {
-                        const s = r.querySelector(".fee-type-select");
-                        if (s && s.value == adminFeeType.id) adminExists = true;
-                    });
-                    
-                    if (!adminExists) {
-                        addFeeRow(adminFeeType.id);
-                        APP.showInfo("New member detected. Admission Fee suggested.");
-                        calculateTotal();
-                    }
+                    addCustomFeeRow(adminFeeType.id);
+                    APP.showSuccess("New member detected. Admission Fee suggested.");
+                    calculateTotal();
                 }
             }
         },
@@ -579,9 +545,20 @@ document.getElementById("paymentForm").addEventListener("submit", function(e) {
     const formData = new FormData(this);
     const id = document.getElementById("paymentId").value;
     
-    // Collect Items
+    // Collect Items from both default and custom fees
     const items = [];
-    document.querySelectorAll("#feeItemsBody tr").forEach(tr => {
+    
+    // Collect default fees
+    document.querySelectorAll("#defaultFeesBody tr").forEach(tr => {
+        const feeTypeId = tr.getAttribute("data-fee-type-id");
+        const amount = tr.getAttribute("data-amount");
+        if (feeTypeId && amount) {
+            items.push({ fee_type_id: feeTypeId, amount: amount });
+        }
+    });
+    
+    // Collect custom fees
+    document.querySelectorAll("#customFeesBody tr").forEach(tr => {
         const feeTypeId = tr.querySelector(".fee-type-select").value;
         const amount = tr.querySelector(".fee-amount-input").value;
         if (feeTypeId && amount) {

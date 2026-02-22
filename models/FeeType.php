@@ -17,10 +17,10 @@ class FeeType {
     public function getAllFeeTypes() {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT * FROM fee_types WHERE is_active = 1 ORDER BY name ASC'
+                'SELECT * FROM fee_types WHERE is_active = 1 ORDER BY id ASC'
             );
             $stmt->execute();
-            return $stmt->fetchAll();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log('Error: ' . $e->getMessage());
             return [];

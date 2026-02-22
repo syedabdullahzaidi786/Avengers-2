@@ -73,6 +73,9 @@ endif; ?>
                                         <a href="<?php echo APP_URL; ?>/views/plans/plans.php" class="dropdown-item">
                                             <i class="fas fa-folder"></i> Plans
                                         </a>
+                                        <a href="<?php echo APP_URL; ?>/views/fee_types/fee_types.php" class="dropdown-item">
+                                            <i class="fas fa-tags"></i> Fee Types
+                                        </a>
                                         <a href="<?php echo APP_URL; ?>/views/expenses/index.php" class="dropdown-item">
                                             <i class="fas fa-file-invoice-dollar"></i> Expenses
                                         </a>

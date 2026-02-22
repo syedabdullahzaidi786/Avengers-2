@@ -51,6 +51,24 @@ $pageContent = '
                         <label for="feeTypeAmount" class="form-label">Default Amount (PKR) <span class="text-danger">*</span></label>
                         <input type="number" class="form-control" id="feeTypeAmount" name="default_amount" placeholder="1000" step="0.01" min="0" required>
                     </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="feeTypeCommissionable" name="is_commissionable" value="1">
+                            <label class="form-check-label" for="feeTypeCommissionable">
+                                Commissionable (Trainer gets commission on this fee)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="feeTypeActive" name="is_active" value="1" checked>
+                            <label class="form-check-label" for="feeTypeActive">
+                                Active (Show in dropdown)
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -73,28 +91,41 @@ function loadFeeTypes() {
                 html = "<div class=\"col-12\"><p class=\"text-center text-muted py-5\">No fee types found</p></div>";
             } else {
                 response.forEach(ft => {
-                    html += `
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">${escapeHtml(ft.name)}</h5>
-                                    <div class="mb-3">
-                                        <span class="h4 text-primary">Rs ${parseFloat(ft.default_amount).toLocaleString("en-PK")}</span>
-                                    </div>
-                                    <div class="btn-group w-100">
-                                        <button class="btn btn-sm btn-warning" onclick="editFeeType(${ft.id})">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteFeeType(${ft.id})">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
+                    const isCommissionable = ft.is_commissionable == 1 ? \'<span class="badge bg-success">Commissionable</span>\' : \'<span class="badge bg-secondary">No Commission</span>\';
+                    const isActive = ft.is_active == 1 ? \'<span class="badge bg-info">Active</span>\' : \'<span class="badge bg-warning">Inactive</span>\';
+                    
+                    const cardHtml = "<div class=\"col-md-6 col-lg-4 mb-4\">" +
+                        "<div class=\"card h-100\">" +
+                        "<div class=\"card-body\">" +
+                        "<div class=\"d-flex justify-content-between align-items-start mb-2\">" +
+                        "<h5 class=\"card-title mb-0\">" + escapeHtml(ft.name) + "</h5>" +
+                        "<div>" + isActive + "</div>" +
+                        "</div>" +
+                        "<div class=\"mb-2\">" +
+                        "<small>" + isCommissionable + "</small>" +
+                        "</div>" +
+                        "<div class=\"mb-3\">" +
+                        "<span class=\"h4 text-primary\">Rs " + parseFloat(ft.default_amount).toLocaleString("en-PK") + "</span>" +
+                        "</div>" +
+                        "<div class=\"btn-group w-100\" role=\"group\">" +
+                        "<button class=\"btn btn-sm btn-warning\" onclick=\"editFeeType(" + ft.id + ")\">" +
+                        "<i class=\"fas fa-edit\"></i> Edit" +
+                        "</button>" +
+                        "<button class=\"btn btn-sm btn-danger\" onclick=\"deleteFeeType(" + ft.id + ")\">" +
+                        "<i class=\"fas fa-trash\"></i> Delete" +
+                        "</button>" +
+                        "</div>" +
+                        "</div>" +
+                        "</div>" +
+                        "</div>";
+                    
+                    html += cardHtml;
                 });
             }
             document.getElementById("feeTypesContainer").innerHTML = html;
+        },
+        error: function() {
+            document.getElementById("feeTypesContainer").innerHTML = "<div class=\"col-12\"><p class=\"text-center text-danger py-5\">Error loading fee types</p></div>";
         }
     });
 }
@@ -116,6 +147,8 @@ function editFeeType(id) {
             document.getElementById("feeTypeId").value = ft.id;
             document.getElementById("feeTypeName").value = ft.name;
             document.getElementById("feeTypeAmount").value = ft.default_amount;
+            document.getElementById("feeTypeCommissionable").checked = ft.is_commissionable == 1;
+            document.getElementById("feeTypeActive").checked = ft.is_active == 1;
             
             document.getElementById("feeTypeModalTitle").textContent = "Edit Fee Type";
             document.getElementById("feeTypeSubmitBtn").textContent = "Update Fee Type";

@@ -227,6 +227,7 @@ foreach ($payments as $p) {
         if ($discountData) {
             $cleanDesc = trim(preg_replace('/\(Discount Applied: \d+% - Rs [\d,.]+\)/', '', $cleanDesc));
         }
+        ?>
         
         <div class="row">
             <span class="label">Method:</span>

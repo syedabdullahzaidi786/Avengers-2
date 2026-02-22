@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 20, 2026 at 06:59 AM
+-- Generation Time: Feb 22, 2026 at 10:25 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -41,16 +41,8 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `member_id`, `check_in_time`, `check_out_time`, `status`, `created_at`) VALUES
-(1, 6, '2026-02-17 09:25:01', NULL, 'present', '2026-02-17 04:25:01'),
-(2, 6, '2026-02-18 12:07:22', NULL, 'present', '2026-02-18 07:07:22'),
-(3, 11, '2026-02-20 10:38:34', NULL, 'present', '2026-02-20 05:38:34'),
-(4, 11, '2026-02-20 10:38:44', NULL, 'present', '2026-02-20 05:38:44'),
-(5, 11, '2026-02-20 10:38:46', NULL, 'present', '2026-02-20 05:38:46'),
-(6, 6, '2026-02-20 10:40:33', NULL, 'present', '2026-02-20 05:40:33'),
-(7, 5, '2026-02-20 10:40:36', NULL, 'present', '2026-02-20 05:40:36'),
-(8, 4, '2026-02-20 10:40:37', NULL, 'present', '2026-02-20 05:40:37'),
-(9, 3, '2026-02-20 10:40:38', NULL, 'present', '2026-02-20 05:40:38'),
-(10, 1, '2026-02-20 10:40:54', NULL, 'present', '2026-02-20 05:40:54');
+(10, 1, '2026-02-20 10:40:54', NULL, 'present', '2026-02-20 05:40:54'),
+(14, 1, '2026-02-22 07:57:08', NULL, 'present', '2026-02-22 02:57:08');
 
 -- --------------------------------------------------------
 
@@ -68,15 +60,6 @@ CREATE TABLE `commissions` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `commissions`
---
-
-INSERT INTO `commissions` (`id`, `trainer_id`, `member_id`, `payment_id`, `amount`, `commission_rate`, `created_at`) VALUES
-(6, 1, 6, 17, 4000.00, 80.00, '2026-02-17 07:24:56'),
-(9, 1, 6, 24, 4000.00, 80.00, '2026-02-20 04:22:22'),
-(10, 3, 11, 32, 5000.00, 50.00, '2026-02-20 05:30:15');
-
 -- --------------------------------------------------------
 
 --
@@ -93,14 +76,6 @@ CREATE TABLE `expenses` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `expenses`
---
-
-INSERT INTO `expenses` (`id`, `title`, `amount`, `expense_date`, `category`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'GYM Software', 25000.00, '2026-02-17', 'Equipment', '', '2026-02-17 04:21:19', '2026-02-17 04:21:19'),
-(2, 'Rent', 50000.00, '2026-02-20', 'Rent', '', '2026-02-20 05:04:41', '2026-02-20 05:04:41');
 
 -- --------------------------------------------------------
 
@@ -123,12 +98,11 @@ CREATE TABLE `fee_types` (
 
 INSERT INTO `fee_types` (`id`, `name`, `default_amount`, `is_commissionable`, `is_active`, `created_at`) VALUES
 (1, 'Membership Fee', 0.00, 0, 1, '2026-02-17 03:44:44'),
-(2, 'Admission Fee', 1000.00, 0, 1, '2026-02-17 03:44:44'),
-(3, 'Cardio Fee', 500.00, 0, 1, '2026-02-17 03:44:44'),
-(4, 'Personal Trainer (Rajab Raza)', 2000.00, 1, 1, '2026-02-17 03:44:44'),
-(5, 'Locker Fee', 300.00, 0, 1, '2026-02-17 03:44:44'),
-(6, 'Other', 0.00, 0, 1, '2026-02-17 03:44:44'),
-(7, 'Updated Test Fee', 750.00, 0, 0, '2026-02-17 04:48:11');
+(2, 'Admission Fee', 2000.00, 0, 1, '2026-02-17 03:44:44'),
+(3, 'Cardio Fee', 2000.00, 0, 1, '2026-02-17 03:44:44'),
+(4, 'Personal Trainer', 0.00, 1, 1, '2026-02-17 03:44:44'),
+(5, 'Locker Fee', 0.00, 0, 1, '2026-02-17 03:44:44'),
+(6, 'Other', 0.00, 0, 1, '2026-02-17 03:44:44');
 
 -- --------------------------------------------------------
 
@@ -157,13 +131,7 @@ CREATE TABLE `members` (
 --
 
 INSERT INTO `members` (`id`, `full_name`, `phone`, `gender`, `profile_picture`, `plan_id`, `trainer_id`, `start_date`, `end_date`, `status`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'Ahmed Khan', '03001234567', 'Male', NULL, 1, NULL, '2026-02-01', '2026-03-02', 'active', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(2, 'Fatima Ali', '03009876543', 'Female', NULL, 2, NULL, '2025-11-15', '2026-02-13', 'expired', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(3, 'Hassan Ahmad', '03101112131', 'Male', NULL, 3, NULL, '2025-09-01', '2026-02-28', 'active', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(4, 'Sara Khan', '03357654321', 'Female', NULL, 1, NULL, '2026-02-10', '2026-03-10', 'active', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(5, 'Ali Raza', '03451234567', 'Male', NULL, 4, NULL, '2026-02-18', '2027-02-18', 'active', NULL, '2026-02-17 03:37:26', '2026-02-18 08:56:15'),
-(6, 'Syed Abdullah', '0313225897', 'Male', NULL, 1, 1, '2026-02-27', '2026-03-29', 'active', NULL, '2026-02-17 04:17:09', '2026-02-17 05:00:44'),
-(11, 'Rajab Raza', '03152891255', 'Male', NULL, 5, 3, '2026-02-20', '2026-02-21', 'active', NULL, '2026-02-20 05:09:50', '2026-02-20 05:26:21');
+(1, 'Abdullah', '03313771572', 'Male', NULL, 1, 3, '2026-02-01', '2026-03-03', 'active', NULL, '2026-02-17 03:37:26', '2026-02-22 08:51:01');
 
 -- --------------------------------------------------------
 
@@ -187,11 +155,7 @@ CREATE TABLE `membership_plans` (
 --
 
 INSERT INTO `membership_plans` (`id`, `name`, `duration`, `price`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, '1 Month', 30, 2500.00, 'Basic monthly membership', 1, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(2, '3 Months', 90, 6500.00, '3-month membership plan', 1, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(3, '6 Months', 180, 11000.00, '6-month membership with discount', 1, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(4, '1 Year', 365, 18000.00, 'Annual membership - Best Value', 1, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(5, '1 Day Test ', 1, 500.00, '', 1, '2026-02-20 05:09:25', '2026-02-20 05:09:25');
+(1, '1 Month', 30, 4000.00, 'Basic Monthly Membership', 1, '2026-02-17 03:37:26', '2026-02-22 08:44:37');
 
 -- --------------------------------------------------------
 
@@ -217,28 +181,10 @@ CREATE TABLE `payments` (
 --
 
 INSERT INTO `payments` (`id`, `member_id`, `fee_type_id`, `amount`, `payment_method`, `payment_date`, `description`, `receipt_number`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 2500.00, 'cash', '2026-02-01', 'Monthly membership payment', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(2, 2, 1, 6500.00, 'easypaisa', '2025-11-15', 'Quarterly membership payment', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(3, 3, 1, 11000.00, 'jazzcash', '2025-09-01', 'Semi-annual membership payment', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(4, 4, 1, 2500.00, 'cash', '2026-02-10', 'Monthly membership payment', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(5, 5, 1, 18000.00, 'bank_transfer', '2025-02-16', 'Annual membership payment', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(6, 1, 1, 2500.00, 'nayapay', '2026-02-16', 'Renewal payment', NULL, '2026-02-17 03:37:26', '2026-02-17 03:37:26'),
-(16, 6, 1, 2500.00, 'nayapay', '2026-02-18', '', 'REC-20260217082456-6', '2026-02-17 07:24:56', '2026-02-17 07:24:56'),
-(17, 6, 4, 5000.00, 'nayapay', '2026-02-18', '', 'REC-20260217082456-6', '2026-02-17 07:24:56', '2026-02-17 07:24:56'),
-(18, 6, 2, 1000.00, 'nayapay', '2026-02-18', '', 'REC-20260217082456-6', '2026-02-17 07:24:56', '2026-02-17 07:24:56'),
-(19, 6, 3, 500.00, 'nayapay', '2026-02-18', '', 'REC-20260217082456-6', '2026-02-17 07:24:56', '2026-02-17 07:24:56'),
-(20, 5, 1, 18000.00, 'cash', '2026-02-18', 'Membership Renewal (2026-02-18 to 2027-02-18)', 'REC-1771404810-5', '2026-02-18 08:53:30', '2026-02-18 08:53:30'),
-(21, 5, 1, 18000.00, 'cash', '2026-02-18', 'Membership Renewal (2026-02-18 to 2027-02-18)', 'REC-1771404844-5', '2026-02-18 08:54:04', '2026-02-18 08:54:04'),
-(22, 5, 1, 18000.00, 'cash', '2026-02-18', 'Membership Renewal (2026-02-18 to 2027-02-18)', 'REC-1771404975-5', '2026-02-18 08:56:15', '2026-02-18 08:56:15'),
-(23, 6, 1, 2500.00, 'cash', '2026-02-20', '', 'REC-20260220092222-6', '2026-02-20 04:22:22', '2026-02-20 04:22:22'),
-(24, 6, 4, 5000.00, 'cash', '2026-02-20', '', 'REC-20260220092222-6', '2026-02-20 04:22:22', '2026-02-20 04:22:22'),
-(25, 6, 2, 1000.00, 'cash', '2026-02-20', '', 'REC-20260220092222-6', '2026-02-20 04:22:22', '2026-02-20 04:22:22'),
-(26, 6, 3, 500.00, 'cash', '2026-02-20', '', 'REC-20260220092222-6', '2026-02-20 04:22:22', '2026-02-20 04:22:22'),
-(31, 11, 1, 500.00, 'bank_transfer', '2026-02-20', '', 'REC-20260220103015-11', '2026-02-20 05:30:15', '2026-02-20 05:30:15'),
-(32, 11, 4, 10000.00, 'bank_transfer', '2026-02-20', '', 'REC-20260220103015-11', '2026-02-20 05:30:15', '2026-02-20 05:30:15'),
-(33, 11, 2, 1000.00, 'bank_transfer', '2026-02-20', '', 'REC-20260220103015-11', '2026-02-20 05:30:15', '2026-02-20 05:30:15'),
-(34, 11, 3, 500.00, 'bank_transfer', '2026-02-20', '', 'REC-20260220103015-11', '2026-02-20 05:30:15', '2026-02-20 05:30:15'),
-(35, 11, 5, 300.00, 'bank_transfer', '2026-02-20', '', 'REC-20260220103015-11', '2026-02-20 05:30:15', '2026-02-20 05:30:15');
+(49, 1, 1, 400.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55'),
+(50, 1, 4, 10000.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55'),
+(51, 1, 2, 2000.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55'),
+(52, 1, 3, 2000.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55');
 
 -- --------------------------------------------------------
 
@@ -262,8 +208,9 @@ CREATE TABLE `trainers` (
 --
 
 INSERT INTO `trainers` (`id`, `name`, `phone`, `specialization`, `commission_rate`, `fee`, `created_at`, `updated_at`) VALUES
-(1, 'Rajab Raza', '03001234656', 'Body Building', 80.00, 5000.00, '2026-02-17 04:12:02', '2026-02-17 05:06:00'),
-(3, 'Faizan', '0313258/884', 'Body Building', 50.00, 10000.00, '2026-02-20 05:14:52', '2026-02-20 05:29:26');
+(1, 'Trainer 2', '123456789', 'Personal Training', 50.00, 15000.00, '2026-02-17 04:12:02', '2026-02-22 08:39:31'),
+(3, 'Trainer 1', '123456789', 'General Training', 50.00, 10000.00, '2026-02-20 05:14:52', '2026-02-22 08:38:28'),
+(4, 'Trainer 3', '123456789', 'PT With Diet Plaining', 50.00, 20000.00, '2026-02-22 08:40:20', '2026-02-22 08:40:20');
 
 -- --------------------------------------------------------
 
@@ -380,7 +327,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `commissions`
@@ -404,7 +351,7 @@ ALTER TABLE `fee_types`
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `membership_plans`
@@ -416,13 +363,13 @@ ALTER TABLE `membership_plans`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `trainers`
 --
 ALTER TABLE `trainers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`
