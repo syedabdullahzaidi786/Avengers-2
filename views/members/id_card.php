@@ -85,8 +85,8 @@ if (!$member) {
             border-radius: 50% 0 0 50%;
         }
         .logo-img {
-            max-height: 45px;
-            margin-bottom: 25px;
+            max-height: 75px;
+            margin-bottom: 55px;
             z-index: 2;
             filter: brightness(0) invert(1);
         }
@@ -272,12 +272,11 @@ $photoUrl = $member['profile_picture'] ? APP_URL . '/' . $member['profile_pictur
         
         <div class="id-card-right">
             <div class="member-name"><?php echo htmlspecialchars($member['full_name']); ?></div>
-            <div class="member-role">GYM MEMBER</div>
             
             <div class="details-grid">
                 <div class="details-row">
-                    <span class="details-label">ID NO:</span>
-                    <span class="details-value">#<?php echo str_pad($member['id'], 6, '0', STR_PAD_LEFT); ?></span>
+                    <span class="details-label">Membership NO:</span>
+                    <span class="details-value"><?php echo str_pad($member['id'], 6, '0', STR_PAD_LEFT); ?></span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">PHONE:</span>
