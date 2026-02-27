@@ -156,8 +156,8 @@ if ($month === 'all') {
         <!-- Financial Chart -->
         <div class="col-lg-8">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">Monthly Trend - ' . $year . '</h5>
+                <div class="card-header bg-dark">
+                    <h5 class="card-title mb-0 text-white">Monthly Trend - ' . $year . '</h5>
                 </div>
                 <div class="card-body">
                     <div style="height: 350px;">
@@ -170,8 +170,8 @@ if ($month === 'all') {
         <!-- Trainer Earnings -->
         <div class="col-lg-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">Trainer Commissions - ' . $year . '</h5>
+                <div class="card-header bg-dark">
+                    <h5 class="card-title mb-0 text-white">Trainer Commissions - ' . $year . '</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -210,8 +210,8 @@ if ($month === 'all') {
 
     <!-- Monthly Breakdown Table -->
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">Monthly Revenue & Expenses Breakdown</h5>
+        <div class="card-header bg-dark py-3">
+            <h5 class="card-title mb-0 text-white">Monthly Revenue & Expenses Breakdown</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -359,8 +359,8 @@ else {
 
             <!-- Commissions Section -->
             <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Trainer Commissions</h5>
+                <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 text-white">Trainer Commissions</h5>
                     <span class="badge bg-info">Total: Rs ' . number_format($totalCommissions, 0) . '</span>
                 </div>
                 <div class="card-body p-0">

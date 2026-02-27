@@ -27,8 +27,17 @@ class Member
 
             $params = [];
             if (!empty($search)) {
-                $query .= ' AND (m.full_name LIKE ? OR m.phone LIKE ? OR m.id LIKE ?)';
-                $params = ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%'];
+                // only allow numeric membership searches; any non-digit string returns no results
+                if (!ctype_digit($search)) {
+                    // add a condition that is always false
+                    $query .= ' AND 0';
+                } else {
+                    $query .= ' AND (
+                                  m.id = ?
+                                  OR LPAD(m.id, 6, "0") = ?
+                              )';
+                    $params = [$search, $search];
+                }
             }
 
             $query .= ' ORDER BY m.created_at DESC LIMIT ? OFFSET ?';
@@ -55,8 +64,15 @@ class Member
             $params = [];
 
             if (!empty($search)) {
-                $query .= ' AND (full_name LIKE ? OR phone LIKE ? OR id LIKE ?)';
-                $params = ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%'];
+                if (!ctype_digit($search)) {
+                    $query .= ' AND 0';
+                } else {
+                    $query .= ' AND (
+                                  id = ?
+                                  OR LPAD(id, 6, "0") = ?
+                              )';
+                    $params = [$search, $search];
+                }
             }
 
             $stmt = $this->pdo->prepare($query);
@@ -103,30 +119,73 @@ class Member
             $startDate = new DateTime($data['start_date']);
             $endDate = $startDate->modify('+' . $plan['duration'] . ' days');
 
-            $stmt = $this->pdo->prepare(
-                'INSERT INTO members (full_name, phone, gender, profile_picture, plan_id, trainer_id, start_date, end_date, status) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-            );
-
+            // Determine status based on end date
             $status = $endDate->format('Y-m-d') >= date('Y-m-d') ? 'active' : 'expired';
 
-            $result = $stmt->execute([
-                $data['full_name'],
-                $data['phone'],
-                $data['gender'] ?? 'Male',
-                $data['profile_picture'] ?? null,
-                $data['plan_id'],
-                !empty($data['trainer_id']) ? $data['trainer_id'] : null,
-                $data['start_date'],
-                $endDate->format('Y-m-d'),
-                $status
-            ]);
+            // If an explicit id is provided, include it in the insert
+            if (!empty($data['id'])) {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO members (id, full_name, phone, gender, profile_picture, plan_id, trainer_id, start_date, end_date, status) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                );
+                $params = [
+                    $data['id'],
+                    $data['full_name'],
+                    $data['phone'],
+                    $data['gender'] ?? 'Male',
+                    $data['profile_picture'] ?? null,
+                    $data['plan_id'],
+                    !empty($data['trainer_id']) ? $data['trainer_id'] : null,
+                    $data['start_date'],
+                    $endDate->format('Y-m-d'),
+                    $status
+                ];
+            } else {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO members (full_name, phone, gender, profile_picture, plan_id, trainer_id, start_date, end_date, status) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                );
+                $params = [
+                    $data['full_name'],
+                    $data['phone'],
+                    $data['gender'] ?? 'Male',
+                    $data['profile_picture'] ?? null,
+                    $data['plan_id'],
+                    !empty($data['trainer_id']) ? $data['trainer_id'] : null,
+                    $data['start_date'],
+                    $endDate->format('Y-m-d'),
+                    $status
+                ];
+            }
+
+            $result = $stmt->execute($params);
+
+            if (!empty($data['id'])) {
+                return $data['id'];
+            }
 
             return $this->pdo->lastInsertId();
         }
         catch (PDOException $e) {
             error_log('Error: ' . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Get next member id (max(id) + 1)
+     */
+    public function getNextMemberId()
+    {
+        try {
+            $stmt = $this->pdo->prepare('SELECT MAX(id) as max_id FROM members');
+            $stmt->execute();
+            $row = $stmt->fetch();
+            $max = $row['max_id'] ?? 0;
+            return $max + 1;
+        } catch (PDOException $e) {
+            error_log('Error in getNextMemberId: ' . $e->getMessage());
+            return 1;
         }
     }
 

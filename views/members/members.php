@@ -16,6 +16,8 @@ $trainerModel = new Trainer($pdo);
 $plans = $planModel->getAllPlans();
 $trainers = $trainerModel->getAllTrainers();
 
+$nextMemberId = $memberModel->getNextMemberId();
+
 // Set page title
 $pageTitle = 'Members';
 
@@ -42,7 +44,7 @@ $pageContent = '
     <div class="card-body">
         <div class="row">
             <div class="col-md-8">
-                <input type="text" id="memberSearch" class="form-control" placeholder="Search by name, phone, or membership no...">
+                <input type="text" id="memberSearch" class="form-control" placeholder="Search by membership no (digits only)">
             </div>
             <div class="col-md-4">
                 <select id="statusFilter" class="form-select">
@@ -91,7 +93,9 @@ $pageContent = '
             </div>
             <form id="memberForm" enctype="multipart/form-data">
                 <div class="modal-body">
+                    <!-- When editing, memberId is filled; for create we use proposed id field below -->
                     <input type="hidden" id="memberId" name="id">
+                    <input type="hidden" id="memberProposedId" name="proposed_id">
                     
                     <!-- Auto-generated Membership No Display -->
                     <div class="mb-3" id="membershipNoGroup" style="display:none;">
@@ -174,6 +178,7 @@ $pageContent .= '
 
 <script>
 const plansData = ' . json_encode($plans) . ';
+const NEXT_MEMBER_ID = ' . intval($nextMemberId) . ';
 
 function loadMembers() {
     const search = document.getElementById("memberSearch").value;
@@ -232,8 +237,11 @@ function loadMembers() {
 
 function addMemberForm() {
     document.getElementById("memberForm").reset();
+    // Prefill next membership id (proposed) and lock the display; leave memberId empty so form uses add endpoint
     document.getElementById("memberId").value = "";
-    document.getElementById("membershipNoGroup").style.display = "none"; // Hide on create
+    document.getElementById("memberProposedId").value = NEXT_MEMBER_ID;
+    document.getElementById("membershipNoGroup").style.display = "block";
+    document.getElementById("membershipNoDisplay").value = String(NEXT_MEMBER_ID).padStart(6, "0");
     document.getElementById("memberModalTitle").textContent = "Add Member";
     document.getElementById("memberSubmitBtn").textContent = "Save Member";
     document.getElementById("memberStartDate").valueAsDate = new Date();
@@ -247,6 +255,10 @@ function editMember(id) {
         dataType: "json",
         success: function(member) {
             document.getElementById("memberId").value = member.id;
+            // Clear any proposed id when editing
+            if (document.getElementById("memberProposedId")) {
+                document.getElementById("memberProposedId").value = "";
+            }
             
             // Show Membership No
             document.getElementById("membershipNoGroup").style.display = "block";

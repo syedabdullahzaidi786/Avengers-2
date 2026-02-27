@@ -19,16 +19,23 @@ class Payment
     public function getAllPayments($limit = 10, $offset = 0)
     {
         try {
+            // Include trainer name override for trainer fee records (fee_type_id=4)
             $stmt = $this->pdo->prepare(
-                'SELECT p.*, m.full_name, m.phone, ft.name as fee_type_name 
+                'SELECT p.*, m.full_name, m.phone,
+                        CASE
+                            WHEN ft.id = 4 AND t.name IS NOT NULL THEN t.name
+                            ELSE ft.name
+                        END as fee_type_name
                  FROM payments p 
                  JOIN members m ON p.member_id = m.id 
                  LEFT JOIN fee_types ft ON p.fee_type_id = ft.id
+                 LEFT JOIN trainers t ON m.trainer_id = t.id
                  ORDER BY p.payment_date DESC, p.created_at DESC 
                  LIMIT ? OFFSET ?'
             );
             $stmt->execute([$limit, $offset]);
-            return $stmt->fetchAll();
+            $rows = $stmt->fetchAll();
+            return $rows;
         }
         catch (PDOException $e) {
             error_log('Error: ' . $e->getMessage());
@@ -43,10 +50,23 @@ class Payment
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT * FROM payments WHERE member_id = ? ORDER BY payment_date DESC'
+                'SELECT p.*, ft.name as fee_type_name, t.name as trainer_name
+                 FROM payments p
+                 LEFT JOIN fee_types ft ON p.fee_type_id = ft.id
+                 LEFT JOIN members m ON p.member_id = m.id
+                 LEFT JOIN trainers t ON m.trainer_id = t.id
+                 WHERE p.member_id = ?
+                 ORDER BY p.payment_date DESC'
             );
             $stmt->execute([$memberId]);
-            return $stmt->fetchAll();
+            $rows = $stmt->fetchAll();
+            // override trainer fee names if necessary
+            foreach ($rows as &$r) {
+                if ((int)$r['fee_type_id'] === 4 && !empty($r['trainer_name'])) {
+                    $r['fee_type_name'] = $r['trainer_name'];
+                }
+            }
+            return $rows;
         }
         catch (PDOException $e) {
             error_log('Error: ' . $e->getMessage());
@@ -167,9 +187,15 @@ class Payment
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT p.*, m.full_name, m.phone 
+                'SELECT p.*, m.full_name, m.phone,
+                        CASE
+                            WHEN ft.id = 4 AND t.name IS NOT NULL THEN t.name
+                            ELSE ft.name
+                        END as fee_type_name
                  FROM payments p 
                  JOIN members m ON p.member_id = m.id 
+                 LEFT JOIN fee_types ft ON p.fee_type_id = ft.id
+                 LEFT JOIN trainers t ON m.trainer_id = t.id
                  ORDER BY p.payment_date DESC, p.created_at DESC 
                  LIMIT ?'
             );
@@ -282,10 +308,15 @@ class Payment
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT p.*, m.full_name, m.phone, ft.name as fee_type_name 
+                'SELECT p.*, m.full_name, m.phone,
+                        CASE
+                            WHEN ft.id = 4 AND t.name IS NOT NULL THEN t.name
+                            ELSE ft.name
+                        END as fee_type_name
                  FROM payments p 
                  JOIN members m ON p.member_id = m.id 
                  LEFT JOIN fee_types ft ON p.fee_type_id = ft.id
+                 LEFT JOIN trainers t ON m.trainer_id = t.id
                  WHERE p.id = ?'
             );
             $stmt->execute([$id]);
@@ -304,10 +335,15 @@ class Payment
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT p.*, m.full_name, m.phone, ft.name as fee_type_name 
+                'SELECT p.*, m.full_name, m.phone,
+                        CASE
+                            WHEN ft.id = 4 AND t.name IS NOT NULL THEN t.name
+                            ELSE ft.name
+                        END as fee_type_name
                  FROM payments p 
                  JOIN members m ON p.member_id = m.id 
                  LEFT JOIN fee_types ft ON p.fee_type_id = ft.id
+                 LEFT JOIN trainers t ON m.trainer_id = t.id
                  WHERE p.receipt_number = ?'
             );
             $stmt->execute([$receiptNumber]);

@@ -446,8 +446,10 @@ function populateFeesForMember(option) {
     
     // 2. FORCE ADD Trainer Fee if assigned (default, read-only)
     if (trainerName && parseFloat(trainerFee) > 0) {
+        // Use the actual trainer name instead of the generic label
         console.log("FORCE Adding Trainer Fee:", trainerName, trainerFee);
-        addDefaultFeeRow(4, "Personal Trainer", trainerFee);
+        const label = trainerName ? trainerName : "Personal Trainer";
+        addDefaultFeeRow(4, label, trainerFee);
     }
     
     // 3. New Member Check (Admission Fee Suggestion - as custom fee)

@@ -6,8 +6,6 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Member.php';
 
-header('Content-Type: application/json');
-
 // Check if user is authenticated
 if (!isAuthenticated()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -53,6 +51,11 @@ if (!empty($_FILES['profile_picture']['name'])) {
             $data['profile_picture'] = 'uploads/members/' . $fileName;
         }
     }
+}
+
+// Include explicit id if provided via proposed_id (avoid conflicting with memberId used for updates)
+if (!empty($_POST['proposed_id'])) {
+    $data['id'] = intval($_POST['proposed_id']);
 }
 
 // Validate

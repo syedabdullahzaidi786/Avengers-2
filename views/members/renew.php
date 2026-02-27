@@ -301,8 +301,15 @@ function showMemberDetails(member) {
     // 2. Add Trainer Fee if applicable (read-only default)
     const trainerFee = parseFloat(member.trainer_fee) || 0;
     if (trainerFee > 0) {
+        // Determine appropriate label: prefer trainer's name, fallback to fee type name
         const ft = findTrainerFeeType(member.trainer_name);
-        addDefaultFeeRow(ft ? ft.id : null, ft ? ft.name : "Trainer Fee", trainerFee);
+        let label = "Trainer Fee";
+        if (member.trainer_name) {
+            label = member.trainer_name;
+        } else if (ft && ft.name) {
+            label = ft.name;
+        }
+        addDefaultFeeRow(ft ? ft.id : null, label, trainerFee);
     }
     
     document.getElementById("renewalDiscountPercent").value = 0;

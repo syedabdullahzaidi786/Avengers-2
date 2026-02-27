@@ -100,6 +100,7 @@ const APP = {
                         responsive: true,
                         pageLength: 10,
                         lengthMenu: [10, 25, 50, 100],
+                        searching: false, // hide built-in filter/search box
                         language: {
                             search: 'Search:',
                             lengthMenu: 'Show _MENU_ entries',

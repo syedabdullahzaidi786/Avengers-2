@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 22, 2026 at 10:25 AM
+-- Generation Time: Feb 27, 2026 at 02:07 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,14 +35,6 @@ CREATE TABLE `attendance` (
   `status` enum('present','absent') DEFAULT 'present',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `attendance`
---
-
-INSERT INTO `attendance` (`id`, `member_id`, `check_in_time`, `check_out_time`, `status`, `created_at`) VALUES
-(10, 1, '2026-02-20 10:40:54', NULL, 'present', '2026-02-20 05:40:54'),
-(14, 1, '2026-02-22 07:57:08', NULL, 'present', '2026-02-22 02:57:08');
 
 -- --------------------------------------------------------
 
@@ -97,12 +89,13 @@ CREATE TABLE `fee_types` (
 --
 
 INSERT INTO `fee_types` (`id`, `name`, `default_amount`, `is_commissionable`, `is_active`, `created_at`) VALUES
-(1, 'Membership Fee', 0.00, 0, 1, '2026-02-17 03:44:44'),
+(1, 'Membership Fee', 0.00, 0, 0, '2026-02-17 03:44:44'),
 (2, 'Admission Fee', 2000.00, 0, 1, '2026-02-17 03:44:44'),
-(3, 'Cardio Fee', 2000.00, 0, 1, '2026-02-17 03:44:44'),
+(3, 'Cardio Fee', 2500.00, 0, 1, '2026-02-17 03:44:44'),
 (4, 'Personal Trainer', 0.00, 1, 1, '2026-02-17 03:44:44'),
-(5, 'Locker Fee', 0.00, 0, 1, '2026-02-17 03:44:44'),
-(6, 'Other', 0.00, 0, 1, '2026-02-17 03:44:44');
+(5, 'Locker Fee', 0.00, 0, 0, '2026-02-17 03:44:44'),
+(6, 'Other', 0.00, 0, 0, '2026-02-17 03:44:44'),
+(8, 'Massage Chair - 10 Mints', 300.00, 0, 1, '2026-02-24 12:50:49');
 
 -- --------------------------------------------------------
 
@@ -126,13 +119,6 @@ CREATE TABLE `members` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `members`
---
-
-INSERT INTO `members` (`id`, `full_name`, `phone`, `gender`, `profile_picture`, `plan_id`, `trainer_id`, `start_date`, `end_date`, `status`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'Abdullah', '03313771572', 'Male', NULL, 1, 3, '2026-02-01', '2026-03-03', 'active', NULL, '2026-02-17 03:37:26', '2026-02-22 08:51:01');
-
 -- --------------------------------------------------------
 
 --
@@ -155,7 +141,9 @@ CREATE TABLE `membership_plans` (
 --
 
 INSERT INTO `membership_plans` (`id`, `name`, `duration`, `price`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, '1 Month', 30, 4000.00, 'Basic Monthly Membership', 1, '2026-02-17 03:37:26', '2026-02-22 08:44:37');
+(1, 'Strength Weight', 30, 5000.00, 'Basic Monthly Membership', 1, '2026-02-17 03:37:26', '2026-02-27 01:03:15'),
+(6, 'Strength Weight & Cardio', 30, 6000.00, '', 1, '2026-02-24 12:54:08', '2026-02-27 01:03:41'),
+(7, 'Cardio', 30, 2500.00, '', 1, '2026-02-24 12:54:47', '2026-02-24 12:54:47');
 
 -- --------------------------------------------------------
 
@@ -175,16 +163,6 @@ CREATE TABLE `payments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `payments`
---
-
-INSERT INTO `payments` (`id`, `member_id`, `fee_type_id`, `amount`, `payment_method`, `payment_date`, `description`, `receipt_number`, `created_at`, `updated_at`) VALUES
-(49, 1, 1, 400.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55'),
-(50, 1, 4, 10000.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55'),
-(51, 1, 2, 2000.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55'),
-(52, 1, 3, 2000.00, 'cash', '2026-02-22', 'Test\n(Discount Applied: 20% - Rs 3,600.00)', 'REC-20260222141255-1', '2026-02-22 09:12:55', '2026-02-22 09:12:55');
 
 -- --------------------------------------------------------
 
@@ -327,13 +305,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `commissions`
 --
 ALTER TABLE `commissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `expenses`
@@ -345,25 +323,25 @@ ALTER TABLE `expenses`
 -- AUTO_INCREMENT for table `fee_types`
 --
 ALTER TABLE `fee_types`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `membership_plans`
 --
 ALTER TABLE `membership_plans`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT for table `trainers`
