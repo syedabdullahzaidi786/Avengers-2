@@ -193,10 +193,9 @@ foreach ($payments as $p) {
         <?php 
         // Parsing discount from description
         $discountData = null;
-        if (!empty($firstPayment['description']) && preg_match('/\(Discount Applied: (\d+)% - Rs ([\d,.]+)\)/', $firstPayment['description'], $matches)) {
+        if (!empty($firstPayment['description']) && preg_match('/\(Discount Applied: Rs ([\d,.]+)\)/', $firstPayment['description'], $matches)) {
             $discountData = [
-                'percent' => $matches[1],
-                'amount' => (float)str_replace(',', '', $matches[2])
+                'amount' => (float)str_replace(',', '', $matches[1])
             ];
         }
 
@@ -215,7 +214,7 @@ foreach ($payments as $p) {
 
         <?php if ($discountData): ?>
         <div class="row" style="color: #d9534f; font-style: italic;">
-            <span class="label">Discount (<?php echo $discountData['percent']; ?>%):</span>
+            <span class="label">Discount:</span>
             <span class="value">- Rs <?php echo number_format($discountData['amount'], 0); ?></span>
         </div>
         <?php endif; ?>
@@ -225,7 +224,7 @@ foreach ($payments as $p) {
         // or just show everything else)
         $cleanDesc = $firstPayment['description'];
         if ($discountData) {
-            $cleanDesc = trim(preg_replace('/\(Discount Applied: \d+% - Rs [\d,.]+\)/', '', $cleanDesc));
+            $cleanDesc = trim(preg_replace('/\(Discount Applied: Rs [\d,.]+\)/', '', $cleanDesc));
         }
         ?>
         

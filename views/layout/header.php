@@ -82,6 +82,10 @@ endif; ?>
                                         <a href="<?php echo APP_URL; ?>/views/reports/finance.php" class="dropdown-item">
                                             <i class="fas fa-chart-bar"></i> Reports
                                         </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a href="<?php echo APP_URL; ?>/views/settings/about.php" class="dropdown-item">
+                                            <i class="fas fa-info-circle"></i> About Software
+                                        </a>
                                     </div>
                                 </li>
                             </ul>

@@ -35,11 +35,11 @@ $discountAmount = $_POST['discount_amount'] ?? 0;
 $receiptNumber = 'REC-' . date('YmdHis') . '-' . $memberId;
 
 // Update description if discount applied
-if ($discountPercent > 0) {
+if ($discountAmount > 0) {
     if (!empty($description)) {
         $description .= "\n";
     }
-    $description .= "(Discount Applied: " . $discountPercent . "% - Rs " . number_format($discountAmount, 2) . ")";
+    $description .= "(Discount Applied: Rs " . number_format($discountAmount, 2) . ")";
 }
 
 $successCount = 0;

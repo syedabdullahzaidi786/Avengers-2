@@ -143,9 +143,9 @@ $pageContent .= '
                                     <th></th>
                                 </tr>
                                 <tr>
-                                    <th class="text-end">Discount (%):</th>
+                                    <th class="text-end">Discount Amount (Rs):</th>
                                     <th>
-                                        <input type="number" class="form-control form-control-sm" id="paymentDiscountPercent" name="discount_percent" value="0" min="0" max="100" oninput="calculateTotal()">
+                                        <input type="number" class="form-control form-control-sm" id="paymentDiscountAmount" name="discount_amount" value="0.00" min="0" step="0.01" oninput="calculateTotal()">
                                     </th>
                                     <th></th>
                                 </tr>
@@ -153,7 +153,6 @@ $pageContent .= '
                                     <th class="text-end text-primary">Total:</th>
                                     <th>
                                         <input type="number" class="form-control form-control-sm fw-bold border-primary text-primary" id="paymentTotal" readonly value="0.00">
-                                        <input type="hidden" id="paymentDiscountAmount" name="discount_amount" value="0">
                                     </th>
                                     <th></th>
                                 </tr>
@@ -295,9 +294,8 @@ function addPaymentForm() {
     document.getElementById("defaultFeesBody").innerHTML = "";
     document.getElementById("customFeesBody").innerHTML = "";
     document.getElementById("paymentSubtotal").value = "0.00";
-    document.getElementById("paymentDiscountPercent").value = "0";
+    document.getElementById("paymentDiscountAmount").value = "0.00";
     document.getElementById("paymentTotal").value = "0.00";
-    document.getElementById("paymentDiscountAmount").value = "0";
     document.getElementById("memberSummaryContainer").style.display = "none";
     document.getElementById("memberSummaryContainer").innerHTML = "";
     
@@ -400,14 +398,12 @@ function calculateTotal() {
         if (!isNaN(val)) subtotal += val;
     });
     
-    const discountPercent = parseFloat(document.getElementById("paymentDiscountPercent").value) || 0;
-    const discountAmount = subtotal * (discountPercent / 100);
+    const discountAmount = parseFloat(document.getElementById("paymentDiscountAmount").value) || 0;
     const total = subtotal - discountAmount;
     
     console.log("Calculated Subtotal:", subtotal, "Discount:", discountAmount, "Total:", total);
     
     document.getElementById("paymentSubtotal").value = subtotal.toFixed(2);
-    document.getElementById("paymentDiscountAmount").value = discountAmount.toFixed(2);
     document.getElementById("paymentTotal").value = total.toFixed(2);
 }
 
